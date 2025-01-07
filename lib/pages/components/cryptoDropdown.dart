@@ -1,18 +1,20 @@
+// crypto_dropdown.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class CurrencyOption {
   final String name;
   final String symbol;
   final String? imageUrl;
   final String? chain;
-  final Color backgroundColor;
-  
+  final String? svgAsset;
+
   CurrencyOption({
     required this.name,
     required this.symbol,
     this.imageUrl,
     this.chain,
-    this.backgroundColor = Colors.blue,
+    this.svgAsset,
   });
 }
 
@@ -110,20 +112,43 @@ class CryptoDropdown extends StatelessWidget {
   }
 
   Widget _buildCurrencyIcon(CurrencyOption currency) {
-    if (currency.imageUrl != null) {
+    if (currency.svgAsset != null) {
+      return Container(
+        width: 32,
+        height: 32,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: SvgPicture.asset(
+            currency.svgAsset!,
+            fit: BoxFit.contain,
+            placeholderBuilder: (BuildContext context) => Container(
+              padding: const EdgeInsets.all(8),
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Colors.grey[300],
+              ),
+            ),
+          ),
+        ),
+      );
+    } else if (currency.imageUrl != null) {
       return CircleAvatar(
         radius: 16,
         backgroundImage: NetworkImage(currency.imageUrl!),
       );
     }
-    
+
     return CircleAvatar(
       radius: 16,
-      backgroundColor: currency.backgroundColor,
+      backgroundColor: Colors.grey[200],
       child: Text(
         currency.symbol[0],
-        style: const TextStyle(
-          color: Colors.white,
+        style: TextStyle(
+          color: Colors.grey[800],
           fontWeight: FontWeight.bold,
         ),
       ),

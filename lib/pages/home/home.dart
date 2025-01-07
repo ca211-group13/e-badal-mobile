@@ -1,5 +1,8 @@
-import 'package:crypto_to_local_exchange_app/pages/components/cryptoDropdown.dart';
+
+// crypto_swap_screen.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:crypto_to_local_exchange_app/pages/components/cryptoDropdown.dart';
 
 class CryptoSwapScreen extends StatefulWidget {
   const CryptoSwapScreen({Key? key}) : super(key: key);
@@ -12,44 +15,40 @@ class _CryptoSwapScreenState extends State<CryptoSwapScreen> {
   final TextEditingController _fromController = TextEditingController();
   final TextEditingController _toController = TextEditingController();
   double serviceFeePercentage = 2.0;
-  late CurrencyOption selectedCrypto;
-  late CurrencyOption selectedLocal;
+  late CurrencyOption upperSelectedOption;
+  late CurrencyOption lowerSelectedOption;
 
-  final List<CurrencyOption> cryptoOptions = [
+final List<CurrencyOption> cryptoOptions = [
     CurrencyOption(
       name: 'USDT BEP-20',
       symbol: 'USDT',
       chain: 'BNB Smart Chain',
-      imageUrl:
-          'https://assets.coingecko.com/coins/images/325/thumb/Tether.png',
+      // Fallback to text if SVG continues to fail
+      svgAsset: 'assets/images/usdt.svg', // Changed to use a single USDT SVG
     ),
     CurrencyOption(
       name: 'USDT TRC-20',
       symbol: 'USDT',
       chain: 'TRON',
-      imageUrl:
-          'https://assets.coingecko.com/coins/images/325/thumb/Tether.png',
+      // Fallback to text if SVG continues to fail
+      svgAsset: 'assets/images/usdt.svg', // Changed to use a single USDT SVG
     ),
-  ];
-
-  final List<CurrencyOption> localOptions = [
     CurrencyOption(
       name: 'EVC Money',
       symbol: 'EVC',
-      backgroundColor: Colors.green,
+      svgAsset: 'assets/images/evc.svg',
     ),
     CurrencyOption(
       name: 'Zaad Service',
       symbol: 'ZAAD',
-      backgroundColor: Colors.blue,
+      svgAsset: 'assets/images/zaad.svg',
     ),
     CurrencyOption(
       name: 'Sahal Service',
       symbol: 'SAHAL',
-      backgroundColor: Colors.orange,
+      svgAsset: 'assets/images/sahal.svg',
     ),
-  ];
-
+];
   void updateReceiveAmount(String value) {
     if (value.isEmpty) {
       _toController.text = '';
@@ -61,11 +60,33 @@ class _CryptoSwapScreenState extends State<CryptoSwapScreen> {
     _toController.text = receiveAmount.toStringAsFixed(2);
   }
 
+  void swapCurrencies() {
+    setState(() {
+      final temp = upperSelectedOption;
+      upperSelectedOption = lowerSelectedOption;
+      lowerSelectedOption = temp;
+      
+      // Clear input fields when swapping
+      _fromController.clear();
+      _toController.clear();
+    });
+  }
+
   @override
   void initState() {
     super.initState();
-    selectedCrypto = cryptoOptions[0];
-    selectedLocal = localOptions[0];
+    upperSelectedOption = cryptoOptions[0];
+    lowerSelectedOption = cryptoOptions[2];
+    
+    // Add listeners to properly dispose
+    _fromController.addListener(() => updateReceiveAmount(_fromController.text));
+  }
+
+  @override
+  void dispose() {
+    _fromController.dispose();
+    _toController.dispose();
+    super.dispose();
   }
 
   @override
@@ -78,7 +99,6 @@ class _CryptoSwapScreenState extends State<CryptoSwapScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // You Pay Section
               const Text(
                 'You Pay',
                 style: TextStyle(
@@ -104,7 +124,6 @@ class _CryptoSwapScreenState extends State<CryptoSwapScreen> {
                     Expanded(
                       child: TextField(
                         controller: _fromController,
-                        onChanged: updateReceiveAmount,
                         style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
@@ -118,23 +137,35 @@ class _CryptoSwapScreenState extends State<CryptoSwapScreen> {
                     ),
                     CryptoDropdown(
                       options: cryptoOptions,
-                      selected: selectedCrypto,
-                      onChanged: (option) =>
-                          setState(() => selectedCrypto = option),
+                      selected: upperSelectedOption,
+                      onChanged: (option) {
+                        if (option.symbol == 'USDT' &&
+                            lowerSelectedOption.symbol == 'USDT') {
+                          setState(() {
+                            lowerSelectedOption = cryptoOptions[2];
+                          });
+                        } else if (option.symbol != 'USDT' &&
+                            lowerSelectedOption.symbol != 'USDT') {
+                          setState(() {
+                            lowerSelectedOption = cryptoOptions[0];
+                          });
+                        }
+                        setState(() => upperSelectedOption = option);
+                      },
                     ),
                   ],
                 ),
               ),
 
-              // Swap Icon
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  child: Icon(Icons.swap_vert, color: Colors.blue),
+              // Swap Icon Button
+              Center(
+                child: IconButton(
+                  icon: const Icon(Icons.swap_vert, color: Colors.blue),
+                  onPressed: swapCurrencies,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
               ),
 
-              // You Receive Section
               const Text(
                 'You Receive',
                 style: TextStyle(
@@ -172,10 +203,22 @@ class _CryptoSwapScreenState extends State<CryptoSwapScreen> {
                       ),
                     ),
                     CryptoDropdown(
-                      options: localOptions,
-                      selected: selectedLocal,
-                      onChanged: (option) =>
-                          setState(() => selectedLocal = option),
+                      options: cryptoOptions,
+                      selected: lowerSelectedOption,
+                      onChanged: (option) {
+                        if (option.symbol == 'USDT' &&
+                            upperSelectedOption.symbol == 'USDT') {
+                          setState(() {
+                            upperSelectedOption = cryptoOptions[2];
+                          });
+                        } else if (option.symbol != 'USDT' &&
+                            upperSelectedOption.symbol != 'USDT') {
+                          setState(() {
+                            upperSelectedOption = cryptoOptions[0];
+                          });
+                        }
+                        setState(() => lowerSelectedOption = option);
+                      },
                     ),
                   ],
                 ),
@@ -234,7 +277,7 @@ class _CryptoSwapScreenState extends State<CryptoSwapScreen> {
                 ),
               ),
 
-              const SizedBox(height: 24),
+              const Spacer(),
 
               // Swap Button
               SizedBox(
