@@ -112,6 +112,7 @@ class CryptoDropdown extends StatelessWidget {
   }
 
   Widget _buildCurrencyIcon(CurrencyOption currency) {
+    
     if (currency.svgAsset != null) {
       return Container(
         width: 32,

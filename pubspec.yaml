@@ -60,11 +60,13 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/images/USDT-BEP20.svg
-    - assets/images/USDT-TRC20.svg
+    # - assets/images/USDTBEP20.svg
+    # - assets/images/USDTTRC20.svg
     - assets/images/evc.svg
     - assets/images/zaad.svg
     - assets/images/sahal.svg
+    - assets/images/coffee.jpg
+    - assets/images/usdt.svg
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
