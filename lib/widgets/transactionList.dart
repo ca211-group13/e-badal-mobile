@@ -19,53 +19,63 @@ class _TransactionListState extends State<TransactionList> {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "Transactions",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+      child: Container(
+        width: double.infinity,
+        height: double.infinity,
+        padding: EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(25),
+          color: Colors.white,
+        ),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Transactions",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              GestureDetector(
-                onTap: _toggleBlur,
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 8.0),
-                  child: Icon(
-                      _isBlurred ? Icons.visibility_off : Icons.remove_red_eye),
-                ),
-              )
-              // TextButton(
-              //   onPressed: _toggleBlur,
-              //   child: Text(
-              //     _isBlurred ? "Show" : "Hide",
-              //     style: TextStyle(
-              //       color: Colors.blue,
-              //       fontWeight: FontWeight.bold,
-              //     ),
-              //   ),
-              // ),
-            ],
-          ),
-          Expanded(
-            child: ListView.builder(
-              padding: EdgeInsets.all(16),
-              itemCount: 2,
-              itemBuilder: (context, index) {
-                return _isBlurred
-                    ? Blur(
-                        blur: 8,
-                        colorOpacity: 0.1,
-                        child: _buildTransactionItem())
-                    : _buildTransactionItem();
-              },
+                GestureDetector(
+                  onTap: _toggleBlur,
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 8.0),
+                    child: Icon(_isBlurred
+                        ? Icons.visibility_off
+                        : Icons.remove_red_eye),
+                  ),
+                )
+                // TextButton(
+                //   onPressed: _toggleBlur,
+                //   child: Text(
+                //     _isBlurred ? "Show" : "Hide",
+                //     style: TextStyle(
+                //       color: Colors.blue,
+                //       fontWeight: FontWeight.bold,
+                //     ),
+                //   ),
+                // ),
+              ],
             ),
-          ),
-        ],
+            Expanded(
+              child: ListView.builder(
+                padding: EdgeInsets.all(16),
+                itemCount: 2,
+                itemBuilder: (context, index) {
+                  return _isBlurred
+                      ? Blur(
+                          blur: 8,
+                          colorOpacity: 0.1,
+                          child: _buildTransactionItem())
+                      : _buildTransactionItem();
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

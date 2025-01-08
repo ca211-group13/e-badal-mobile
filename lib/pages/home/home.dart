@@ -63,6 +63,7 @@ class _CryptoSwapScreenState extends State<CryptoSwapScreen> {
     });
 }
 
+
   void swapCurrencies() {
     setState(() {
       final temp = upperSelectedOption;
@@ -73,7 +74,13 @@ class _CryptoSwapScreenState extends State<CryptoSwapScreen> {
       _toController.clear();
     });
   }
+  int _selectedIndex = 2;
 
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
   @override
   void initState() {
     super.initState();
@@ -94,16 +101,73 @@ class _CryptoSwapScreenState extends State<CryptoSwapScreen> {
 
   @override
   Widget build(BuildContext context) {
-    print('i see nothign' + _fromController.text);
     return Scaffold(
       backgroundColor: Colors.grey[100],
+      bottomNavigationBar: Stack(
+        children: [
+          ClipRRect(
+            child: BottomNavigationBar(
+              type: BottomNavigationBarType.fixed,
+              backgroundColor: Colors.white,
+              
+              selectedItemColor: Colors.blue,
+              unselectedItemColor: Colors.black,
+              currentIndex: _selectedIndex,
+              onTap: _onItemTapped,
+              
+              items: [
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.home),
+                  label: 'home',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.account_balance_wallet),
+                  label: 'accounts',
+                ),
+                BottomNavigationBarItem(
+                  icon:
+                      SizedBox.shrink(), // Empty space for the centered button
+                  label: '',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.account_balance_wallet),
+                  label: 'Wallet',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.person),
+                  label: 'Profile',
+                ),
+              ],
+            ),
+          ),
+          Positioned.fill(
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: FloatingActionButton(
+                backgroundColor: Colors.blue,
+                onPressed: () {
+                  setState(() {
+                    _selectedIndex = 2; // Central Home Button Index
+                  });
+                },
+                child: Icon(Icons.swap_vert, color: Colors.white),
+              ),
+            ),
+          ),
+        ],
+      ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Container(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
                 'You Pay',
                 style: TextStyle(
                   fontSize: 16,
@@ -251,6 +315,11 @@ class _CryptoSwapScreenState extends State<CryptoSwapScreen> {
               const SizedBox(height: 24),
 
 
+
+                  ],
+                ),
+              ),
+  
               TransactionList(),
             ],
           ),

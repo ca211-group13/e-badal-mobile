@@ -37,6 +37,7 @@ dependencies:
   cupertino_icons: ^1.0.6
   flutter_svg: ^2.0.10+1
   blur: ^3.0.0 # Adjust the version as needed
+  easy_stepper: ^0.8.3
 
 
 dev_dependencies:
@@ -69,6 +70,8 @@ flutter:
     - assets/images/sahal.svg
     - assets/images/coffee.jpg
     - assets/images/usdt.svg
+    - assets/images/trx.png
+    - assets/images/qr-code.png
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
