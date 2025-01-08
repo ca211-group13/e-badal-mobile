@@ -1,5 +1,6 @@
-
 // crypto_swap_screen.dart
+import 'package:crypto_to_local_exchange_app/widgets/paymentDetails%20.dart';
+import 'package:crypto_to_local_exchange_app/widgets/transactionList.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:crypto_to_local_exchange_app/pages/components/cryptoDropdown.dart';
@@ -18,7 +19,7 @@ class _CryptoSwapScreenState extends State<CryptoSwapScreen> {
   late CurrencyOption upperSelectedOption;
   late CurrencyOption lowerSelectedOption;
 
-final List<CurrencyOption> cryptoOptions = [
+  final List<CurrencyOption> cryptoOptions = [
     CurrencyOption(
       name: 'USDT BEP-20',
       symbol: 'USDT',
@@ -48,8 +49,9 @@ final List<CurrencyOption> cryptoOptions = [
       symbol: 'SAHAL',
       svgAsset: 'assets/images/sahal.svg',
     ),
-];
+  ];
   void updateReceiveAmount(String value) {
+    setState(() {
     if (value.isEmpty) {
       _toController.text = '';
       return;
@@ -58,14 +60,14 @@ final List<CurrencyOption> cryptoOptions = [
     double fee = inputAmount * (serviceFeePercentage / 100);
     double receiveAmount = inputAmount - fee;
     _toController.text = receiveAmount.toStringAsFixed(2);
-  }
+    });
+}
 
   void swapCurrencies() {
     setState(() {
       final temp = upperSelectedOption;
       upperSelectedOption = lowerSelectedOption;
       lowerSelectedOption = temp;
-      
       // Clear input fields when swapping
       _fromController.clear();
       _toController.clear();
@@ -77,9 +79,10 @@ final List<CurrencyOption> cryptoOptions = [
     super.initState();
     upperSelectedOption = cryptoOptions[0];
     lowerSelectedOption = cryptoOptions[2];
-    
+
     // Add listeners to properly dispose
-    _fromController.addListener(() => updateReceiveAmount(_fromController.text));
+    _fromController
+        .addListener(() => updateReceiveAmount(_fromController.text));
   }
 
   @override
@@ -91,6 +94,7 @@ final List<CurrencyOption> cryptoOptions = [
 
   @override
   Widget build(BuildContext context) {
+    print('i see nothign' + _fromController.text);
     return Scaffold(
       backgroundColor: Colors.grey[100],
       body: SafeArea(
@@ -106,9 +110,9 @@ final List<CurrencyOption> cryptoOptions = [
                   color: Colors.grey,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 3),
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
@@ -157,12 +161,22 @@ final List<CurrencyOption> cryptoOptions = [
                 ),
               ),
 
+              // Fee Information (Below "You Pay")
+              const SizedBox(height: 8),
+              Text(
+                'Service Fee: $serviceFeePercentage% ${_fromController.text.isNotEmpty ? '(\$${((double.tryParse(_fromController.text) ?? 0) * (serviceFeePercentage / 100)).toStringAsFixed(2)})' : ''}',
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey,
+                ),
+              ),
+
               // Swap Icon Button
               Center(
                 child: IconButton(
                   icon: const Icon(Icons.swap_vert, color: Colors.blue),
                   onPressed: swapCurrencies,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  padding: const EdgeInsets.only(top: 8),
                 ),
               ),
 
@@ -173,9 +187,9 @@ final List<CurrencyOption> cryptoOptions = [
                   color: Colors.grey,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 3),
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
@@ -224,84 +238,20 @@ final List<CurrencyOption> cryptoOptions = [
                 ),
               ),
 
+              // Fee Information (Below "You Receive")
+              const SizedBox(height: 8),
+              Text(
+                'Net Amount: ${_toController.text.isNotEmpty ? '\$${_toController.text}' : ''}',
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey,
+                ),
+              ),
+
               const SizedBox(height: 24),
 
-              // Fee Information
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.shade200,
-                      blurRadius: 4,
-                    ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('You Pay'),
-                        Text(
-                          '\$${_fromController.text.isEmpty ? "0.00" : _fromController.text}',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Service Fee'),
-                        Text(
-                          '${serviceFeePercentage}% (\$${(_fromController.text.isEmpty ? 0 : double.parse(_fromController.text) * serviceFeePercentage / 100).toStringAsFixed(2)})',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('You Receive'),
-                        Text(
-                          '\$${_toController.text.isEmpty ? "0.00" : _toController.text}',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
 
-              const Spacer(),
-
-              // Swap Button
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: () {
-                    // Implement swap functionality
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'Swap',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
+              TransactionList(),
             ],
           ),
         ),
