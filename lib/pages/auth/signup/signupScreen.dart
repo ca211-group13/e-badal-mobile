@@ -1,5 +1,7 @@
+import 'package:crypto_to_local_exchange_app/controller/userController.dart';
 import 'package:crypto_to_local_exchange_app/pages/auth/signin/loginScreen.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({Key? key}) : super(key: key);
@@ -12,6 +14,7 @@ class _SignupScreenState extends State<SignupScreen> {
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
   final _formKey = GlobalKey<FormState>();
+  final UserController userController = Get.put(UserController());
 
   @override
   Widget build(BuildContext context) {
@@ -42,6 +45,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                   const SizedBox(height: 30),
                   TextFormField(
+                    controller: userController.nameController,
                     decoration: InputDecoration(
                       labelText: 'Full Name',
                       filled: true,
@@ -58,6 +62,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
+                    controller: userController.emailController,
                     decoration: InputDecoration(
                       labelText: 'Email Address',
                       filled: true,
@@ -74,6 +79,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
+                    controller: userController.passwordController,
                     obscureText: !_isPasswordVisible,
                     decoration: InputDecoration(
                       labelText: 'Password',
@@ -104,6 +110,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
+                    controller: userController.confermPasswordController,
                     obscureText: !_isConfirmPasswordVisible,
                     decoration: InputDecoration(
                       labelText: 'Confirm Password',
@@ -139,9 +146,10 @@ class _SignupScreenState extends State<SignupScreen> {
                     height: 48,
                     child: ElevatedButton(
                       onPressed: () {
-                        if (_formKey.currentState!.validate()) {
-                          // Handle signup logic here
-                        }
+                        // if (_formKey.currentState!.validate()) {
+                        //   // Handle signup logic here
+                        // }
+                        userController.registerUser();
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor:
@@ -170,10 +178,11 @@ class _SignupScreenState extends State<SignupScreen> {
                       TextButton(
                         onPressed: () {
                           // Handle navigation to sign in screen
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => LoginScreen()));
+                          Navigator.pushReplacementNamed(context, '/signin');
+                          // Navigator.push(
+                          //     context,
+                          //     MaterialPageRoute(
+                          //         builder: (context) => LoginScreen()));
                         },
                         child: const Text(
                           'Sign in here',

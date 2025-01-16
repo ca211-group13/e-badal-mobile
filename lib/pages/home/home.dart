@@ -1,5 +1,11 @@
-import 'package:crypto_to_local_exchange_app/pages/components/cryptoDropdown.dart';
+// crypto_swap_screen.dart
+import 'package:crypto_to_local_exchange_app/pages/paymentProcess/paymentProcess.dart';
+import 'package:crypto_to_local_exchange_app/widgets/paymentDetails%20.dart';
+import 'package:crypto_to_local_exchange_app/widgets/transactionList.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:crypto_to_local_exchange_app/pages/components/cryptoDropdown.dart';
+import 'package:crypto_to_local_exchange_app/widgets/app_scaffold.dart';
 
 class CryptoSwapScreen extends StatefulWidget {
   const CryptoSwapScreen({Key? key}) : super(key: key);
@@ -12,253 +18,240 @@ class _CryptoSwapScreenState extends State<CryptoSwapScreen> {
   final TextEditingController _fromController = TextEditingController();
   final TextEditingController _toController = TextEditingController();
   double serviceFeePercentage = 2.0;
-  late CurrencyOption selectedCrypto;
-  late CurrencyOption selectedLocal;
+  late CurrencyOption upperSelectedOption;
+  late CurrencyOption lowerSelectedOption;
 
   final List<CurrencyOption> cryptoOptions = [
     CurrencyOption(
       name: 'USDT BEP-20',
       symbol: 'USDT',
       chain: 'BNB Smart Chain',
-      imageUrl:
-          'https://assets.coingecko.com/coins/images/325/thumb/Tether.png',
+      svgAsset: 'assets/images/usdt.svg',
     ),
     CurrencyOption(
       name: 'USDT TRC-20',
       symbol: 'USDT',
       chain: 'TRON',
-      imageUrl:
-          'https://assets.coingecko.com/coins/images/325/thumb/Tether.png',
+      svgAsset: 'assets/images/usdt.svg',
     ),
-  ];
-
-  final List<CurrencyOption> localOptions = [
     CurrencyOption(
       name: 'EVC Money',
       symbol: 'EVC',
-      backgroundColor: Colors.green,
+      svgAsset: 'assets/images/evc.svg',
     ),
     CurrencyOption(
       name: 'Zaad Service',
       symbol: 'ZAAD',
-      backgroundColor: Colors.blue,
+      svgAsset: 'assets/images/zaad.svg',
     ),
     CurrencyOption(
       name: 'Sahal Service',
       symbol: 'SAHAL',
-      backgroundColor: Colors.orange,
+      svgAsset: 'assets/images/sahal.svg',
     ),
   ];
 
   void updateReceiveAmount(String value) {
-    if (value.isEmpty) {
-      _toController.text = '';
-      return;
-    }
-    double inputAmount = double.tryParse(value) ?? 0;
-    double fee = inputAmount * (serviceFeePercentage / 100);
-    double receiveAmount = inputAmount - fee;
-    _toController.text = receiveAmount.toStringAsFixed(2);
+    setState(() {
+      if (value.isEmpty) {
+        _toController.text = '';
+        return;
+      }
+      double inputAmount = double.tryParse(value) ?? 0;
+      double fee = inputAmount * (serviceFeePercentage / 100);
+      double receiveAmount = inputAmount - fee;
+      _toController.text = receiveAmount.toStringAsFixed(2);
+    });
+  }
+
+  void swapCurrencies() {
+    setState(() {
+      final temp = upperSelectedOption;
+      upperSelectedOption = lowerSelectedOption;
+      lowerSelectedOption = temp;
+    });
   }
 
   @override
   void initState() {
     super.initState();
-    selectedCrypto = cryptoOptions[0];
-    selectedLocal = localOptions[0];
+    upperSelectedOption = cryptoOptions[0];
+    lowerSelectedOption = cryptoOptions[2];
+    _fromController
+        .addListener(() => updateReceiveAmount(_fromController.text));
+  }
+
+  @override
+  void dispose() {
+    _fromController.dispose();
+    _toController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[100],
+    return AppScaffold(
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // You Pay Section
-              const Text(
-                'You Pay',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey,
-                ),
-              ),
-              const SizedBox(height: 8),
               Container(
                 padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.shade200,
-                      blurRadius: 4,
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _fromController,
-                        onChanged: updateReceiveAmount,
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        decoration: const InputDecoration(
-                          border: InputBorder.none,
-                          hintText: '0',
-                        ),
-                        keyboardType: TextInputType.number,
-                      ),
-                    ),
-                    CryptoDropdown(
-                      options: cryptoOptions,
-                      selected: selectedCrypto,
-                      onChanged: (option) =>
-                          setState(() => selectedCrypto = option),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Swap Icon
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  child: Icon(Icons.swap_vert, color: Colors.blue),
-                ),
-              ),
-
-              // You Receive Section
-              const Text(
-                'You Receive',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.shade200,
-                      blurRadius: 4,
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _toController,
-                        enabled: false,
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        decoration: const InputDecoration(
-                          border: InputBorder.none,
-                          hintText: '0',
-                        ),
-                      ),
-                    ),
-                    CryptoDropdown(
-                      options: localOptions,
-                      selected: selectedLocal,
-                      onChanged: (option) =>
-                          setState(() => selectedLocal = option),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // Fee Information
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.shade200,
-                      blurRadius: 4,
-                    ),
-                  ],
-                ),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('You Pay'),
-                        Text(
-                          '\$${_fromController.text.isEmpty ? "0.00" : _fromController.text}',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ],
+                    const Text(
+                      'You Pay',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey,
+                      ),
                     ),
+                    const SizedBox(height: 3),
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.shade200,
+                            blurRadius: 4,
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: _fromController,
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              decoration: const InputDecoration(
+                                border: InputBorder.none,
+                                hintText: '0',
+                              ),
+                              keyboardType: TextInputType.number,
+                            ),
+                          ),
+                          CryptoDropdown(
+                            options: cryptoOptions,
+                            selected: upperSelectedOption,
+                            onChanged: (option) {
+                              if (option.symbol == 'USDT' &&
+                                  lowerSelectedOption.symbol == 'USDT') {
+                                setState(() {
+                                  lowerSelectedOption = cryptoOptions[2];
+                                });
+                              } else if (option.symbol != 'USDT' &&
+                                  lowerSelectedOption.symbol != 'USDT') {
+                                setState(() {
+                                  lowerSelectedOption = cryptoOptions[0];
+                                });
+                              }
+                              setState(() => upperSelectedOption = option);
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Fee Information (Below "You Pay")
                     const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Service Fee'),
-                        Text(
-                          '${serviceFeePercentage}% (\$${(_fromController.text.isEmpty ? 0 : double.parse(_fromController.text) * serviceFeePercentage / 100).toStringAsFixed(2)})',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ],
+                    Text(
+                      'Service Fee: $serviceFeePercentage% ${_fromController.text.isNotEmpty ? '(\$${((double.tryParse(_fromController.text) ?? 0) * (serviceFeePercentage / 100)).toStringAsFixed(2)})' : ''}',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey,
+                      ),
                     ),
+
+                    // Swap Icon Button
+                    Center(
+                      child: IconButton(
+                        icon: const Icon(Icons.swap_vert, color: Colors.blue),
+                        onPressed: swapCurrencies,
+                        padding: const EdgeInsets.only(top: 8),
+                      ),
+                    ),
+
+                    const Text(
+                      'You Receive',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.shade200,
+                            blurRadius: 4,
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: _toController,
+                              enabled: false,
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              decoration: const InputDecoration(
+                                border: InputBorder.none,
+                                hintText: '0',
+                              ),
+                            ),
+                          ),
+                          CryptoDropdown(
+                            options: cryptoOptions,
+                            selected: lowerSelectedOption,
+                            onChanged: (option) {
+                              if (option.symbol == 'USDT' &&
+                                  upperSelectedOption.symbol == 'USDT') {
+                                setState(() {
+                                  upperSelectedOption = cryptoOptions[2];
+                                });
+                              } else if (option.symbol != 'USDT' &&
+                                  upperSelectedOption.symbol != 'USDT') {
+                                setState(() {
+                                  upperSelectedOption = cryptoOptions[0];
+                                });
+                              }
+                              setState(() => lowerSelectedOption = option);
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Fee Information (Below "You Receive")
                     const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('You Receive'),
-                        Text(
-                          '\$${_toController.text.isEmpty ? "0.00" : _toController.text}',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ],
+                    Text(
+                      'Net Amount: ${_toController.text.isNotEmpty ? '\$${_toController.text}' : ''}',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey,
+                      ),
                     ),
+
+                    const SizedBox(height: 24),
                   ],
                 ),
               ),
-
-              const SizedBox(height: 24),
-
-              // Swap Button
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: () {
-                    // Implement swap functionality
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'Swap',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
+              TransactionList(),
             ],
           ),
         ),
