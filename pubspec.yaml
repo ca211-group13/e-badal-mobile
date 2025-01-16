@@ -38,6 +38,10 @@ dependencies:
   flutter_svg: ^2.0.10+1
   blur: ^3.0.0 # Adjust the version as needed
   easy_stepper: ^0.8.3
+  get: ^4.6.6
+  http: ^1.2.2
+  flutter_secure_storage: ^9.0.0
+
 
 
 dev_dependencies:

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../accounts/accounts.dart';
+import 'package:crypto_to_local_exchange_app/widgets/app_scaffold.dart';
 
 class CryptoExchangeApp extends StatelessWidget {
   const CryptoExchangeApp({Key? key}) : super(key: key);
@@ -12,150 +14,17 @@ class CryptoExchangeApp extends StatelessWidget {
   }
 }
 
-class UserAccountPage extends StatelessWidget {
+class UserAccountPage extends StatefulWidget {
   const UserAccountPage({Key? key}) : super(key: key);
 
-  void showEditModal(BuildContext context, String accountName, IconData icon,
-      Color iconColor, String accountValue) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(24),
-        ),
-      ),
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CircleAvatar(
-                radius: 40,
-                backgroundColor: iconColor,
-                child: Icon(icon, size: 36, color: Colors.white),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Edit $accountName',
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                initialValue: accountValue,
-                decoration: InputDecoration(
-                  labelText: 'Account Value',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () {
-                  // Save action
-                  Navigator.pop(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Text(
-                  'Save Changes',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
-          ),
-        );
-      },
-    );
-  }
+  @override
+  State<UserAccountPage> createState() => _UserAccountPageState();
+}
 
-  void showEditDialog(BuildContext context, String accountName, IconData icon,
-      Color iconColor, String accountValue) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
-          ),
-          child: SingleChildScrollView(
-            padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context)
-                  .viewInsets
-                  .bottom, // Adjust for keyboard
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CircleAvatar(
-                    radius: 40,
-                    backgroundColor: iconColor,
-                    child: Icon(icon, size: 36, color: Colors.white),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Edit $accountName',
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    initialValue: accountValue,
-                    decoration: InputDecoration(
-                      labelText: 'Account Value',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: () {
-                      // Save action
-                      Navigator.pop(context);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text(
-                      'Save Changes',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
+class _UserAccountPageState extends State<UserAccountPage> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      resizeToAvoidBottomInset: true,
-      backgroundColor: Colors.grey[100],
+    return AppScaffold(
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -216,14 +85,6 @@ class UserAccountPage extends StatelessWidget {
                   color: Colors.green,
                   label: 'USDT (TRC-20)',
                   value: 'TRXb...cbrE',
-                  onEdit: () {
-                    showEditDialog(
-                        context,
-                        'USDT (TRC-20)',
-                        Icons.account_balance_wallet,
-                        Colors.green,
-                        'TRXb...cbrE');
-                  },
                 ),
                 const SizedBox(height: 12),
                 AccountCard(
@@ -231,18 +92,24 @@ class UserAccountPage extends StatelessWidget {
                   color: Colors.blue,
                   label: 'EVC',
                   value: '612544158',
-                  onEdit: () {
-                    showEditDialog(
-                        context,
-                        'USDT (TRC-20)',
-                        Icons.account_balance_wallet,
-                        Colors.green,
-                        'TRXb...cbrE');
-                  },
                 ),
                 const SizedBox(height: 32),
 
                 // Options
+                ListTile(
+                  leading: const Icon(Icons.add_circle_outline),
+                  title: const Text('Add or Edit Account'),
+                  onTap: () {
+                    AddAccountDialog.show(
+                      context,
+                      onAccountAdded: (accountType, value) {
+                        setState(() {
+                          // Add or update the account
+                        });
+                      },
+                    );
+                  },
+                ),
 
                 ListTile(
                   leading: const Icon(Icons.logout),
@@ -288,7 +155,6 @@ class AccountCard extends StatelessWidget {
   final Color color;
   final String label;
   final String value;
-  final VoidCallback onEdit;
 
   const AccountCard({
     Key? key,
@@ -296,7 +162,6 @@ class AccountCard extends StatelessWidget {
     required this.color,
     required this.label,
     required this.value,
-    required this.onEdit,
   }) : super(key: key);
 
   @override
@@ -315,10 +180,6 @@ class AccountCard extends StatelessWidget {
         ),
         title: Text(label),
         subtitle: Text(value),
-        trailing: IconButton(
-          icon: const Icon(Icons.edit, color: Colors.grey),
-          onPressed: onEdit,
-        ),
       ),
     );
   }
