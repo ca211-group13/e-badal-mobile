@@ -1,4 +1,7 @@
+import 'package:crypto_to_local_exchange_app/controller/userController.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -12,6 +15,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _keepSignedIn = false;
   final _formKey = GlobalKey<FormState>();
   String? _passwordError;
+  UserController userController = UserController();
 
   @override
   Widget build(BuildContext context) {
@@ -49,8 +53,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 8),
                   TextFormField(
+                    controller: userController.emailController,
                     decoration: InputDecoration(
-                      hintText: 'Rhebhek@gmail.com',
+                      // hintText: 'Rhebhek@gmail.com',
                       filled: true,
                       fillColor: Colors.white,
                       border: OutlineInputBorder(
@@ -65,35 +70,21 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 16),
                   // Password Field
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Password',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          // Handle forgot password
-                        },
-                        child: const Text(
-                          'Forgot Password',
-                          style: TextStyle(
-                            color: Colors.blue,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
-                    ],
+
+                  const Text(
+                    'Password',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.black87,
+                    ),
                   ),
+
                   const SizedBox(height: 8),
                   TextFormField(
+                    controller: userController.passwordController,
                     obscureText: !_isPasswordVisible,
                     decoration: InputDecoration(
-                      hintText: '••••••••',
+                      // hintText: '••••••••',
                       filled: true,
                       fillColor: Colors.white,
                       border: OutlineInputBorder(
@@ -123,37 +114,60 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  // Keep me signed in checkbox
-                  Row(
-                    children: [
-                      Checkbox(
-                        value: _keepSignedIn,
-                        onChanged: (value) {
-                          setState(() {
-                            _keepSignedIn = value ?? false;
-                          });
-                        },
-                        activeColor: Colors.green,
-                      ),
-                      const Text(
-                        'Keep me signed in',
-                        style: TextStyle(
-                          color: Colors.black87,
+                  TextButton(
+                    onPressed: () {
+                      // Handle forgot password
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      child: Align(
+                        alignment: Alignment.centerRight,
+                        child: const Text(
+                          'Forgot Password',
+                          style: TextStyle(
+                            color: Colors.blue,
+                            fontSize: 14,
+                          ),
                         ),
                       ),
-                    ],
+                    ),
                   ),
-                  const SizedBox(height: 24),
+
+                  // Keep me signed in checkbox
+                  // Row(
+                  //   children: [
+                  //     Checkbox(
+                  //       value: _keepSignedIn,
+                  //       onChanged: (value) {
+                  //         setState(() {
+                  //           _keepSignedIn = value ?? false;
+                  //         });
+                  //       },
+                  //       activeColor: Colors.green,
+                  //     ),
+                  //     const Text(
+                  //       'Keep me signed in',
+                  //       style: TextStyle(
+                  //         color: Colors.black87,
+                  //       ),
+                  //     ),
+                  //   ],
+                  // ),
+                  // const SizedBox(height: 24),
                   // Login Button
+                  Obx(
+                    () => 
                   SizedBox(
                     width: double.infinity,
                     height: 48,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        if (_formKey.currentState!.validate()) {
-                          // Handle login logic here
-                        }
+                      child: ElevatedButton(
+                        onPressed: userController.loading.value
+                            ? null
+                            : () {
+                                // if (_formKey.currentState!.validate()) {
+                                //   // Handle login logic here
+                                // }
+                                userController.login();
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor:
@@ -162,13 +176,18 @@ class _LoginScreenState extends State<LoginScreen> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                      child: const Text(
+                        child: userController.loading.value
+                            ? CircularProgressIndicator(
+                                color: Colors.white,
+                              )
+                            : const Text(
                         'Login',
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.white,
                         ),
                       ),
+                    ),
                     ),
                   ),
                   const SizedBox(height: 16),
