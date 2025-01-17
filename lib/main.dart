@@ -4,14 +4,26 @@ import 'package:crypto_to_local_exchange_app/pages/auth/signup/signupScreen.dart
 import 'package:crypto_to_local_exchange_app/pages/home/home.dart';
 import 'package:crypto_to_local_exchange_app/pages/paymentProcess/paymentProcess.dart';
 import 'package:crypto_to_local_exchange_app/pages/profile/cryptoProfileScreen.dart';
+import 'package:crypto_to_local_exchange_app/middleware/auth_middleware.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 
-void main() {
+void main() async {
+  await GetStorage.init();
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  final storage = GetStorage();
+
+  MyApp({super.key});
+
+  String _getInitialRoute() {
+    final token = storage.read('token');
+    return (token != null && token.isNotEmpty) ? '/' : '/signin';
+  }
+
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
@@ -21,15 +33,34 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         scaffoldBackgroundColor: Colors.grey[100],
       ),
-      initialRoute: '/signup',
-      routes: {
-        '/signup': (context) => const SignupScreen(),
-        '/signin': (context) => const LoginScreen(),
-        '/': (context) => const CryptoSwapScreen(),
-        '/profile': (context) => const UserAccountPage(),
-        // '/accounts': (context) => const AccountsScreen(),
-        '/payment': (context) => PaymentProcessScreen(),
-      },
+      initialRoute: _getInitialRoute(),
+      getPages: [
+        GetPage(
+          name: '/signup',
+          page: () => const SignupScreen(),
+          middlewares: [AuthMiddleware()],
+        ),
+        GetPage(
+          name: '/signin',
+          page: () => const LoginScreen(),
+          middlewares: [AuthMiddleware()],
+        ),
+        GetPage(
+          name: '/',
+          page: () => const CryptoSwapScreen(),
+          middlewares: [AuthMiddleware()],
+        ),
+        GetPage(
+          name: '/profile',
+          page: () => const UserAccountPage(),
+          middlewares: [AuthMiddleware()],
+        ),
+        GetPage(
+          name: '/payment',
+          page: () => PaymentProcessScreen(),
+          middlewares: [AuthMiddleware()],
+        ),
+      ],
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'package:crypto_to_local_exchange_app/controller/userController.dart';
 import 'package:flutter/material.dart';
 import '../accounts/accounts.dart';
 import 'package:crypto_to_local_exchange_app/widgets/app_scaffold.dart';
@@ -20,6 +21,8 @@ class UserAccountPage extends StatefulWidget {
   @override
   State<UserAccountPage> createState() => _UserAccountPageState();
 }
+
+final UserController userController = UserController();
 
 class _UserAccountPageState extends State<UserAccountPage> {
   @override
@@ -116,6 +119,7 @@ class _UserAccountPageState extends State<UserAccountPage> {
                   title: const Text('Sign out'),
                   onTap: () {
                     // Sign out action
+                    userController.logout();
                   },
                 ),
 

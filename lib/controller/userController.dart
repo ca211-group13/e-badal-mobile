@@ -1,11 +1,12 @@
 import 'dart:convert';
 
-import 'package:crypto_to_local_exchange_app/pages/storage/token.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:crypto_to_local_exchange_app/token/token_service.dart';
 
 class UserController extends GetxController {
+  final tokenService = TokenService();
   var loading = false.obs;
   final String baseUrl = 'http://10.0.2.2:8000';
   final emailController = TextEditingController();
@@ -13,7 +14,30 @@ class UserController extends GetxController {
   final confermPasswordController = TextEditingController();
   final nameController = TextEditingController();
   var Token = ''.obs;
-  final TokenStorage tokenStorage = TokenStorage();
+
+  @override
+  void onInit() {
+    super.onInit();
+    // Check if token exists in storage
+    String? storedToken = tokenService.getToken();
+    if (storedToken != null) {
+      Token.value = storedToken;
+    }
+  }
+
+  Future<void> logout() async {
+    // Clear token from storage
+    await tokenService.removeToken();
+    // Clear token from observable
+    Token.value = '';
+    // Clear all text controllers
+    emailController.clear();
+    passwordController.clear();
+    confermPasswordController.clear();
+    nameController.clear();
+    // Navigate to login screen
+    Get.offAllNamed('/signin');
+  }
 
   Future<void> registerUser() async {
     Map<String, String> body = {
@@ -33,19 +57,67 @@ class UserController extends GetxController {
           headers: {'Content-Type': 'application/json'});
       if (response.statusCode == 201) {
         final data = json.decode(response.body);
-        // print(data);
-        TokenStorage.saveToken(data.token);
-        Token.value = data.token;
-        print(Token.value);
+        Token.value = data["token"];
+        // Store token using TokenService
+        await tokenService.setToken(Token.value);
+        loading.value = false;
+        Get.offAllNamed('/');
       } else {
+        loading.value = false;
         Get.snackbar(
           "Error",
-          'failed to fetch',
+          'Registration failed: ${response.reasonPhrase}',
+          backgroundColor: Colors.red.withOpacity(0.1),
+          duration: const Duration(seconds: 3),
         );
-        print(response.reasonPhrase);
       }
     } catch (e) {
-      print(e);
+      loading.value = false;
+      Get.snackbar(
+        "Error",
+        'Network error: $e',
+        backgroundColor: Colors.red.withOpacity(0.1),
+        duration: const Duration(seconds: 3),
+      );
+    }
+  }
+
+  Future<void> login() async {
+    Map<String, String> body = {
+      "email": emailController.text,
+      "password": passwordController.text,
+    };
+
+    try {
+      loading.value = true;
+      final response = await http.post(Uri.parse(baseUrl + '/api/users/login'),
+          body: jsonEncode(body),
+          headers: {'Content-Type': 'application/json'});
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        Token.value = data["token"];
+        // Store token using TokenService
+        await tokenService.setToken(Token.value);
+        loading.value = false;
+        Get.offAllNamed('/');
+      } else {
+        print(response.statusCode);
+        loading.value = false;
+        Get.snackbar(
+          "Error",
+          'Registration failed: ${response.reasonPhrase}',
+          backgroundColor: Colors.red.withOpacity(0.1),
+          duration: const Duration(seconds: 3),
+        );
+      }
+    } catch (e) {
+      loading.value = false;
+      Get.snackbar(
+        "Error",
+        'Network error: $e',
+        backgroundColor: Colors.red.withOpacity(0.1),
+        duration: const Duration(seconds: 3),
+      );
     }
   }
 }

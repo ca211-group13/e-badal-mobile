@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:crypto_to_local_exchange_app/pages/components/cryptoDropdown.dart';
 import 'package:crypto_to_local_exchange_app/widgets/app_scaffold.dart';
+import 'package:get_storage/get_storage.dart';
 
 class CryptoSwapScreen extends StatefulWidget {
   const CryptoSwapScreen({Key? key}) : super(key: key);
@@ -88,8 +89,12 @@ class _CryptoSwapScreenState extends State<CryptoSwapScreen> {
     super.dispose();
   }
 
+  final storage = GetStorage();
+
   @override
   Widget build(BuildContext context) {
+    String? storedToken = storage.read('token');
+    print(storedToken);
     return AppScaffold(
       body: SafeArea(
         child: Padding(

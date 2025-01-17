@@ -141,14 +141,18 @@ class _SignupScreenState extends State<SignupScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
+                  Obx(
+                    () => 
                   SizedBox(
                     width: double.infinity,
                     height: 48,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        // if (_formKey.currentState!.validate()) {
-                        //   // Handle signup logic here
-                        // }
+                      child: ElevatedButton(
+                        onPressed: userController.loading.value
+                            ? null
+                            : () {
+                                // if (_formKey.currentState!.validate()) {
+                                //   // Handle login logic here
+                                // }
                         userController.registerUser();
                       },
                       style: ElevatedButton.styleFrom(
@@ -158,13 +162,18 @@ class _SignupScreenState extends State<SignupScreen> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                      child: const Text(
+                        child: userController.loading.value
+                            ? CircularProgressIndicator(
+                                color: Colors.white,
+                              )
+                            : const Text(
                         'Signup',
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.white,
                         ),
                       ),
+                    ),
                     ),
                   ),
                   const SizedBox(height: 16),
