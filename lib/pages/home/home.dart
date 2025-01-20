@@ -6,7 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:crypto_to_local_exchange_app/pages/components/cryptoDropdown.dart';
 import 'package:crypto_to_local_exchange_app/widgets/app_scaffold.dart';
-import 'package:get_storage/get_storage.dart';
+import 'package:get/get.dart';
+import 'package:crypto_to_local_exchange_app/controllers/swapController.dart';
 
 class CryptoSwapScreen extends StatefulWidget {
   const CryptoSwapScreen({Key? key}) : super(key: key);
@@ -18,68 +19,16 @@ class CryptoSwapScreen extends StatefulWidget {
 class _CryptoSwapScreenState extends State<CryptoSwapScreen> {
   final TextEditingController _fromController = TextEditingController();
   final TextEditingController _toController = TextEditingController();
-  double serviceFeePercentage = 2.0;
-  late CurrencyOption upperSelectedOption;
-  late CurrencyOption lowerSelectedOption;
-
-  final List<CurrencyOption> cryptoOptions = [
-    CurrencyOption(
-      name: 'USDT BEP-20',
-      symbol: 'USDT',
-      chain: 'BNB Smart Chain',
-      svgAsset: 'assets/images/usdt.svg',
-    ),
-    CurrencyOption(
-      name: 'USDT TRC-20',
-      symbol: 'USDT',
-      chain: 'TRON',
-      svgAsset: 'assets/images/usdt.svg',
-    ),
-    CurrencyOption(
-      name: 'EVC Money',
-      symbol: 'EVC',
-      svgAsset: 'assets/images/evc.svg',
-    ),
-    CurrencyOption(
-      name: 'Zaad Service',
-      symbol: 'ZAAD',
-      svgAsset: 'assets/images/zaad.svg',
-    ),
-    CurrencyOption(
-      name: 'Sahal Service',
-      symbol: 'SAHAL',
-      svgAsset: 'assets/images/sahal.svg',
-    ),
-  ];
-
-  void updateReceiveAmount(String value) {
-    setState(() {
-      if (value.isEmpty) {
-        _toController.text = '';
-        return;
-      }
-      double inputAmount = double.tryParse(value) ?? 0;
-      double fee = inputAmount * (serviceFeePercentage / 100);
-      double receiveAmount = inputAmount - fee;
-      _toController.text = receiveAmount.toStringAsFixed(2);
-    });
-  }
-
-  void swapCurrencies() {
-    setState(() {
-      final temp = upperSelectedOption;
-      upperSelectedOption = lowerSelectedOption;
-      lowerSelectedOption = temp;
-    });
-  }
+  final swapController = Get.put(SwapController());
 
   @override
   void initState() {
     super.initState();
-    upperSelectedOption = cryptoOptions[0];
-    lowerSelectedOption = cryptoOptions[2];
-    _fromController
-        .addListener(() => updateReceiveAmount(_fromController.text));
+    _fromController.addListener(
+        () => swapController.updateReceiveAmount(_fromController.text));
+    ever(swapController.toAmount, (value) {
+      _toController.text = value.toString();
+    });
   }
 
   @override
@@ -89,12 +38,8 @@ class _CryptoSwapScreenState extends State<CryptoSwapScreen> {
     super.dispose();
   }
 
-  final storage = GetStorage();
-
   @override
   Widget build(BuildContext context) {
-    String? storedToken = storage.read('token');
-    print(storedToken);
     return AppScaffold(
       body: SafeArea(
         child: Padding(
@@ -143,43 +88,30 @@ class _CryptoSwapScreenState extends State<CryptoSwapScreen> {
                               keyboardType: TextInputType.number,
                             ),
                           ),
-                          CryptoDropdown(
-                            options: cryptoOptions,
-                            selected: upperSelectedOption,
-                            onChanged: (option) {
-                              if (option.symbol == 'USDT' &&
-                                  lowerSelectedOption.symbol == 'USDT') {
-                                setState(() {
-                                  lowerSelectedOption = cryptoOptions[2];
-                                });
-                              } else if (option.symbol != 'USDT' &&
-                                  lowerSelectedOption.symbol != 'USDT') {
-                                setState(() {
-                                  lowerSelectedOption = cryptoOptions[0];
-                                });
-                              }
-                              setState(() => upperSelectedOption = option);
-                            },
-                          ),
+                          Obx(() => CryptoDropdown(
+                                options: swapController.cryptoOptions,
+                                selected: swapController.fromCurrency.value!,
+                                onChanged: swapController.updateFromCurrency,
+                              )),
                         ],
                       ),
                     ),
 
                     // Fee Information (Below "You Pay")
                     const SizedBox(height: 8),
-                    Text(
-                      'Service Fee: $serviceFeePercentage% ${_fromController.text.isNotEmpty ? '(\$${((double.tryParse(_fromController.text) ?? 0) * (serviceFeePercentage / 100)).toStringAsFixed(2)})' : ''}',
+                    Obx(() => Text(
+                          'Service Fee: ${swapController.serviceFeePercentage}% ${_fromController.text.isNotEmpty ? '(\$${((double.tryParse(_fromController.text) ?? 0) * (swapController.serviceFeePercentage.value / 100)).toStringAsFixed(2)})' : ''}',
                       style: const TextStyle(
                         fontSize: 14,
                         color: Colors.grey,
                       ),
-                    ),
+                        )),
 
                     // Swap Icon Button
                     Center(
                       child: IconButton(
                         icon: const Icon(Icons.swap_vert, color: Colors.blue),
-                        onPressed: swapCurrencies,
+                        onPressed: swapController.swapCurrencies,
                         padding: const EdgeInsets.only(top: 8),
                       ),
                     ),
@@ -220,38 +152,66 @@ class _CryptoSwapScreenState extends State<CryptoSwapScreen> {
                               ),
                             ),
                           ),
-                          CryptoDropdown(
-                            options: cryptoOptions,
-                            selected: lowerSelectedOption,
-                            onChanged: (option) {
-                              if (option.symbol == 'USDT' &&
-                                  upperSelectedOption.symbol == 'USDT') {
-                                setState(() {
-                                  upperSelectedOption = cryptoOptions[2];
-                                });
-                              } else if (option.symbol != 'USDT' &&
-                                  upperSelectedOption.symbol != 'USDT') {
-                                setState(() {
-                                  upperSelectedOption = cryptoOptions[0];
-                                });
-                              }
-                              setState(() => lowerSelectedOption = option);
-                            },
-                          ),
+                          Obx(() => CryptoDropdown(
+                                options: swapController.cryptoOptions,
+                                selected: swapController.toCurrency.value!,
+                                onChanged: swapController.updateToCurrency,
+                              )),
                         ],
                       ),
                     ),
 
                     // Fee Information (Below "You Receive")
                     const SizedBox(height: 8),
-                    Text(
-                      'Net Amount: ${_toController.text.isNotEmpty ? '\$${_toController.text}' : ''}',
+                    Obx(() => Text(
+                          'Net Amount: ${swapController.toAmount.value.isNotEmpty ? '\$${swapController.toAmount.value}' : ''}',
                       style: const TextStyle(
                         fontSize: 14,
                         color: Colors.grey,
                       ),
-                    ),
+                        )),
 
+                    const SizedBox(height: 24),
+
+                    // Add payment button
+                    Container(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          if (_fromController.text.isEmpty) {
+                            Get.snackbar(
+                              'Error',
+                              'Please enter an amount',
+                              backgroundColor: Colors.red,
+                              colorText: Colors.white,
+                            );
+                            return;
+                          }
+
+                          // Update the swap controller values before navigation
+                          swapController.fromAmount.value =
+                              _fromController.text;
+                          swapController.toAmount.value = _toController.text;
+                          swapController.setExchangeAccounts();
+
+                          Get.to(() => const PaymentProcessScreen());
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orange,
+                          padding: EdgeInsets.symmetric(vertical: 15),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: Text(
+                          "Proceed to Payment",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
                     const SizedBox(height: 24),
                   ],
                 ),

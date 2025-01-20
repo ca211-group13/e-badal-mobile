@@ -5,12 +5,14 @@ import 'package:crypto_to_local_exchange_app/pages/home/home.dart';
 import 'package:crypto_to_local_exchange_app/pages/paymentProcess/paymentProcess.dart';
 import 'package:crypto_to_local_exchange_app/pages/profile/cryptoProfileScreen.dart';
 import 'package:crypto_to_local_exchange_app/middleware/auth_middleware.dart';
+import 'package:crypto_to_local_exchange_app/controller/userController.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
 void main() async {
   await GetStorage.init();
+  Get.put(UserController());
   runApp(MyApp());
 }
 

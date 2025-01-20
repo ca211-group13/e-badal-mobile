@@ -42,6 +42,7 @@ dependencies:
   http: ^1.1.0
   flutter_secure_storage: ^9.0.0
   get_storage: ^2.1.1
+  url_launcher: ^6.2.5
 
 
 
@@ -75,6 +76,8 @@ flutter:
     - assets/images/sahal.svg
     - assets/images/coffee.jpg
     - assets/images/usdt.svg
+    - assets/images/usdt-trc20.png
+    - assets/images/usdt-pep20.png
     - assets/images/trx.png
     - assets/images/qr-code.png
   #   - images/a_dot_ham.jpeg

@@ -14,7 +14,7 @@ class UserController extends GetxController {
   final confermPasswordController = TextEditingController();
   final nameController = TextEditingController();
   var Token = ''.obs;
-  final user = {}.obs;
+  final users = [].obs;
 
   @override
   void onInit() {
@@ -125,7 +125,6 @@ class UserController extends GetxController {
   Future<void> getUsersProfile() async {
     try {
       loading.value = true;
-      print(Token.value);
       final response = await http.get(
         Uri.parse(baseUrl + '/api/users/profile'),
         headers: {
@@ -133,12 +132,11 @@ class UserController extends GetxController {
           'Authorization': 'Bearer ${Token.value}',
         },
       );
-      print("is it good,${response.statusCode}");
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        user.value = data["user"];
+        users.value = data["data"];
       } else {
-        print(response.statusCode);
         Get.snackbar(
           "Error",
           "Failed to get user profile",
@@ -147,7 +145,6 @@ class UserController extends GetxController {
         );
       }
     } catch (e) {
-      print("there is......${e}");
       Get.snackbar(
         "Error",
         "Network error: $e",

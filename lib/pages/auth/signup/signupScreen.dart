@@ -1,4 +1,4 @@
-import 'package:crypto_to_local_exchange_app/controller/userController.dart';
+import 'package:crypto_to_local_exchange_app/controllers/userController.dart';
 import 'package:crypto_to_local_exchange_app/pages/auth/signin/loginScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
