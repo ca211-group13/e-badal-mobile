@@ -40,6 +40,8 @@ class _CryptoSwapScreenState extends State<CryptoSwapScreen> {
 
   @override
   Widget build(BuildContext context) {
+    print("there is some thing goging on");
+    print(swapController.toAmount.value);
     return AppScaffold(
       body: SafeArea(
         child: Padding(
@@ -101,10 +103,10 @@ class _CryptoSwapScreenState extends State<CryptoSwapScreen> {
                     const SizedBox(height: 8),
                     Obx(() => Text(
                           'Service Fee: ${swapController.serviceFeePercentage}% ${_fromController.text.isNotEmpty ? '(\$${((double.tryParse(_fromController.text) ?? 0) * (swapController.serviceFeePercentage.value / 100)).toStringAsFixed(2)})' : ''}',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey,
-                      ),
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey,
+                          ),
                         )),
 
                     // Swap Icon Button
@@ -165,54 +167,54 @@ class _CryptoSwapScreenState extends State<CryptoSwapScreen> {
                     const SizedBox(height: 8),
                     Obx(() => Text(
                           'Net Amount: ${swapController.toAmount.value.isNotEmpty ? '\$${swapController.toAmount.value}' : ''}',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey,
-                      ),
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey,
+                          ),
                         )),
 
-                    const SizedBox(height: 24),
+                    // const SizedBox(height: 24),
 
                     // Add payment button
-                    Container(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          if (_fromController.text.isEmpty) {
-                            Get.snackbar(
-                              'Error',
-                              'Please enter an amount',
-                              backgroundColor: Colors.red,
-                              colorText: Colors.white,
-                            );
-                            return;
-                          }
+                    // Container(
+                    //   width: double.infinity,
+                    //   child: ElevatedButton(
+                    //     onPressed: () {
+                    //       if (_fromController.text.isEmpty) {
+                    //         Get.snackbar(
+                    //           'Error',
+                    //           'Please enter an amount',
+                    //           backgroundColor: Colors.red,
+                    //           colorText: Colors.white,
+                    //         );
+                    //         return;
+                    //       }
 
-                          // Update the swap controller values before navigation
-                          swapController.fromAmount.value =
-                              _fromController.text;
-                          swapController.toAmount.value = _toController.text;
-                          swapController.setExchangeAccounts();
+                    //       // Update the swap controller values before navigation
+                    //       swapController.fromAmount.value =
+                    //           _fromController.text;
+                    //       swapController.toAmount.value = _toController.text;
+                    //       swapController.setExchangeAccounts();
 
-                          Get.to(() => const PaymentProcessScreen());
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange,
-                          padding: EdgeInsets.symmetric(vertical: 15),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: Text(
-                          "Proceed to Payment",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
+                    //       Get.to(() => const PaymentProcessScreen());
+                    //     },
+                    //     style: ElevatedButton.styleFrom(
+                    //       backgroundColor: Colors.orange,
+                    //       padding: EdgeInsets.symmetric(vertical: 15),
+                    //       shape: RoundedRectangleBorder(
+                    //         borderRadius: BorderRadius.circular(8),
+                    //       ),
+                    //     ),
+                    //     child: Text(
+                    //       "Proceed to Payment",
+                    //       style: TextStyle(
+                    //         fontSize: 16,
+                    //         fontWeight: FontWeight.w600,
+                    //       ),
+                    //     ),
+                    //   ),
+                    // ),
+                    // const SizedBox(height: 24),
                   ],
                 ),
               ),

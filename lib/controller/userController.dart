@@ -15,12 +15,17 @@ class UserController extends GetxController {
   final nameController = TextEditingController();
   var Token = ''.obs;
   final user = {}.obs;
+  final pendingTransaction = {}.obs;
 
   @override
   void onInit() {
     super.onInit();
     // Check if token exists in storage
-    String? storedToken = tokenService.getToken();
+    initializeToken();
+  }
+
+  Future<void> initializeToken() async {
+    String? storedToken = await tokenService.getToken();
     if (storedToken != null) {
       Token.value = storedToken;
     }
@@ -32,6 +37,8 @@ class UserController extends GetxController {
     // Clear token from observable
     Token.value = '';
     // Clear all text controllers
+    pendingTransaction.value = {};
+    user.value = {};
     emailController.clear();
     passwordController.clear();
     confermPasswordController.clear();
@@ -124,6 +131,11 @@ class UserController extends GetxController {
 
   Future<void> getUsersProfile() async {
     try {
+      if (Token.value.isEmpty) {
+        await initializeToken();
+      }
+      String? storedToken = tokenService.getToken();
+      print(storedToken);
       loading.value = true;
       print(Token.value);
       final response = await http.get(
@@ -133,10 +145,13 @@ class UserController extends GetxController {
           'Authorization': 'Bearer ${Token.value}',
         },
       );
-      print("is it good,${response.statusCode}");
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         user.value = data["user"];
+        pendingTransaction.value = {
+          "isTherePendingTransaction": data["isTherePendingTransaction"],
+          "lastPendingTransaction": data["lastPendingTransaction"]
+        };
       } else {
         print(response.statusCode);
         Get.snackbar(

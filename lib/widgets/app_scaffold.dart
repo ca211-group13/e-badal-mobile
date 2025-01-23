@@ -1,5 +1,8 @@
+import 'package:crypto_to_local_exchange_app/controller/userController.dart';
+import 'package:crypto_to_local_exchange_app/controllers/swapController.dart';
 import 'package:flutter/material.dart';
 import 'package:crypto_to_local_exchange_app/pages/paymentProcess/paymentProcess.dart';
+import 'package:get/get.dart';
 
 class AppScaffold extends StatefulWidget {
   final Widget body;
@@ -91,7 +94,52 @@ class _AppScaffoldState extends State<AppScaffold> {
               child: FloatingActionButton(
                 backgroundColor: Colors.orange,
                 onPressed: () {
-                  Navigator.pushNamed(context, '/payment');
+                  final swapController = Get.find<SwapController>();
+                  if (swapController.fromAmount.value.isEmpty) {
+                    Get.snackbar(
+                      'empty', // Title
+                      'Please enter an amount', // Message
+                      animationDuration:
+                          Duration(milliseconds: 300), // Smooth animation
+                      backgroundColor: Colors.red[700], // Dark red background
+                      colorText: Colors.white, // White text
+                      snackPosition: SnackPosition.TOP, // Display at the top
+                      borderRadius: 8, // Rounded corners
+                      margin: EdgeInsets.all(16), // Margin around the Snackbar
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 14), // Inner padding
+                      icon: Icon(Icons.error_outline,
+                          color: Colors.white), // Add an icon
+                      shouldIconPulse: true, // Animate the icon
+                      duration: Duration(seconds: 3), // Display duration
+                    );
+                    return;
+                  }
+
+                  swapController.setExchangeAccounts();
+                  if (swapController.fromAddress.isEmpty ||
+                      swapController.toAddress.isEmpty) {
+                    Get.snackbar(
+                      'missin ',
+                      'Please add your ${swapController.fromAddress.isEmpty ? swapController.fromCurrency.value?.name : swapController.toCurrency.value?.name} addres',
+                      animationDuration:
+                          Duration(milliseconds: 300), // Smooth animation
+                      backgroundColor: Colors.red[700], // Dark red background
+                      colorText: Colors.white, // White text
+                      snackPosition: SnackPosition.TOP, // Display at the top
+                      borderRadius: 8, // Rounded corners
+                      margin: EdgeInsets.all(16), // Margin around the Snackbar
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 14), // Inner padding
+                      icon: Icon(Icons.error_outline,
+                          color: Colors.white), // Add an icon
+                      shouldIconPulse: true, // Animate the icon
+                      duration: Duration(seconds: 3), // Display duration
+                    );
+                    return;
+                  }
+
+                  Get.to(() => const PaymentProcessScreen());
                 },
                 child: Icon(Icons.swap_vert, color: Colors.white),
               ),

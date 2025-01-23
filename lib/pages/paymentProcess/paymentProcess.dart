@@ -21,7 +21,7 @@ class _PaymentProcessScreenState extends State<PaymentProcessScreen> {
   bool _copied = false;
   int activeStep = 0;
   final swapController = Get.find<SwapController>();
-  final userController = Get.put(UserController());
+  final userController = Get.find<UserController>();
   final transactionController = Get.put(TransactionControler());
   late double serviceFee;
   late double receiveAmount;
@@ -174,6 +174,7 @@ class _PaymentProcessScreenState extends State<PaymentProcessScreen> {
 
   Widget PaymentGuide() {
     print(userController.user);
+    print(userController.pendingTransaction);
     print("what happing");
     return Column(
       children: [
@@ -542,12 +543,27 @@ class _PaymentProcessScreenState extends State<PaymentProcessScreen> {
             color: Colors.white,
           ),
           child: ElevatedButton(
-            onPressed: () {
-              setState(() {
-                transactionController.createTransaction();
-                if (activeStep < 2) activeStep++;
-              });
-            },
+              onPressed: () async {
+                // Show loading indicator
+                setState(() {
+                  transactionController.isLoading.value = true;
+                });
+
+                // Create transaction and wait for it to complete
+                await transactionController.createTransaction();
+
+                // Update the step only after the transaction is created and state is updated
+                if (mounted) {
+                  setState(() {
+                    if (activeStep < 2) activeStep++;
+                  });
+                }
+
+                // Hide loading indicator
+                setState(() {
+                  transactionController.isLoading.value = false;
+                });
+},
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.orange,
               padding: EdgeInsets.symmetric(vertical: 15),
@@ -555,13 +571,17 @@ class _PaymentProcessScreenState extends State<PaymentProcessScreen> {
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            child: Text(
+              child: Obx(
+                () => transactionController.isLoading.value
+                    ? CircularProgressIndicator()
+                    : Text(
               "Confirm",
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
               ),
-            ),
+                      ),
+              )
           ),
         ),
       ],
@@ -569,62 +589,265 @@ class _PaymentProcessScreenState extends State<PaymentProcessScreen> {
   }
 
   Widget ReviewStep() {
+    print("bismilaah");
+    print(
+        "maneey>>>${userController.pendingTransaction["lastPendingTransaction"]["_id"] ?? ""}");
+    print("is good");
+
     return Column(
       children: [
         Expanded(
           child: SingleChildScrollView(
             padding: EdgeInsets.all(20),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Icon(Icons.rate_review_outlined,
-                    size: 80, color: Colors.orange),
-                SizedBox(height: 20),
                 Text(
-                  'Review Your Payment',
+                  'Waiting for Confirmation',
                   style: TextStyle(
                     fontSize: 24,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
                   ),
                 ),
-                SizedBox(height: 10),
+                SizedBox(height: 8),
                 Text(
-                  'Please review your payment details before proceeding',
+                  'Please wait while we confirm your transaction',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey[600],
+                  ),
+                ),
+                SizedBox(height: 30),
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      _buildTransactionDetail(
+                        'Status',
+                        Container(
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            'Pending',
+                            style: TextStyle(
+                              color: Colors.orange,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ),
+                      _buildTransactionDetail(
+                        'Transaction ID',
+                        Row(
+                          children: [
+                            Obx(
+                              () => Text(
+                                userController.pendingTransaction[
+                                        "lastPendingTransaction"]["_id"]
+                                    .substring(
+                                        0, 6), // Placeholder transaction ID
+                                style: TextStyle(
+                                  color: Colors.black87,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: 8),
+                            Icon(Icons.copy_outlined,
+                                size: 18, color: Colors.grey),
+                          ],
+                        ),
+                      ),
+                      _buildTransactionDetail(
+                        'Amount',
+                        Obx(() {
+                          return (Text(
+                            "\$${userController.pendingTransaction["lastPendingTransaction"]["amount"].toString()}",
+                            style: TextStyle(
+                              color: Colors.black87,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ));
+                        }),
+                      ),
+                      _buildTransactionDetail(
+                        'Services Fee',
+                        Text(
+                          '\$${serviceFee.toStringAsFixed(2)}',
+                          style: TextStyle(
+                            color: Colors.black87,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      _buildTransactionDetail(
+                        'Type',
+                        Row(
+                          children: [
+                            Container(
+                                width: 24,
+                                height: 24,
+                                child: Obx(
+                                  () => Image.asset(
+                                    userController.pendingTransaction[
+                                                    "lastPendingTransaction"]
+                                                    ["type"]
+                                                .split(" ")[0] ==
+                                            "USDT"
+                                        ? 'assets/images/usdt-pep20.png'
+                                        : 'assets/images/evc.png',
+                                    width: 24,
+                                    height: 24,
+                                  ),
+                                )),
+                            SizedBox(width: 8),
+                            Obx(() {
+                              return (Text(
+                                "${userController.pendingTransaction["lastPendingTransaction"]["type"].toString()}",
+                                style: TextStyle(
+                                  color: Colors.black87,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ));
+                            }),
+                          ],
+                        ),
+                      ),
+                      _buildTransactionDetail(
+                        'Local Phone',
+                        Obx(() {
+                          return (Text(
+                            "${userController.pendingTransaction["lastPendingTransaction"]["localPhoneNumber"].toString()}",
+                            style: TextStyle(
+                              color: Colors.black87,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ));
+                        }),
+                      ),
+                      _buildTransactionDetail(
+                        'USDT Address',
+                        Obx(() {
+                          return (Text(
+                            swapController.formatAddress(
+                                userController.pendingTransaction[
+                                    "lastPendingTransaction"]["usdtAddress"]),
+                            style: TextStyle(
+                              color: Colors.black87,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ));
+                        }),
+                      ),
+                      _buildTransactionDetail(
+                        'Date',
+                        Obx(() {
+                          return (Text(
+                            "${userController.pendingTransaction["lastPendingTransaction"]["createdAt"].split("T")[0]}",
+                            style: TextStyle(
+                              color: Colors.black87,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ));
+                        }),
+                        showDivider: false,
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 30),
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.message, color: Colors.orange),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Having issues?',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              "If you're experiencing any problems, please contact our support",
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 20),
+                Text(
+                  'Your transaction is being processed. This may take a few minutes.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Colors.grey[600],
-                    fontSize: 16,
+                    fontSize: 14,
                   ),
                 ),
               ],
             ),
           ),
         ),
-        Container(
-          width: double.infinity,
-          padding: EdgeInsets.all(20),
-          child: ElevatedButton(
-            onPressed: () {
-              setState(() {
-                if (activeStep < 2) activeStep++;
-              });
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.orange,
-              padding: EdgeInsets.symmetric(vertical: 15),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+      ],
+    );
+  }
+
+  Widget _buildTransactionDetail(String label, Widget value,
+      {bool showDivider = true}) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontSize: 14,
+                ),
               ),
-            ),
-            child: Text(
-              "Proceed",
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+              value,
+            ],
           ),
         ),
+        if (showDivider) Divider(height: 1, color: Colors.grey[200]),
       ],
     );
   }

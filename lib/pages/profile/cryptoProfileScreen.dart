@@ -1,5 +1,7 @@
-import 'package:crypto_to_local_exchange_app/controllers/userController.dart';
+import 'package:crypto_to_local_exchange_app/controller/userController.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get/get.dart';
 import '../accounts/accounts.dart';
 import 'package:crypto_to_local_exchange_app/widgets/app_scaffold.dart';
 
@@ -22,11 +24,21 @@ class UserAccountPage extends StatefulWidget {
   State<UserAccountPage> createState() => _UserAccountPageState();
 }
 
-final UserController userController = UserController();
-
 class _UserAccountPageState extends State<UserAccountPage> {
   @override
+  final userController = Get.find<UserController>();
+  void initState() {
+    userController.getUsersProfile(); // Fetch user profile data
+  }
+
+  @override
   Widget build(BuildContext context) {
+    String getFirstCarector(String name) {
+      return name.substring(0, 1).toUpperCase();
+    }
+
+    print(userController.user);
+
     return AppScaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -42,31 +54,43 @@ class _UserAccountPageState extends State<UserAccountPage> {
                       CircleAvatar(
                         radius: 50,
                         backgroundColor: Colors.orange,
-                        child: const Text(
-                          'A',
+                        child: Obx(
+                          () => userController.user["name"] != null
+                              ? Text(
+                                  getFirstCarector(userController.user["name"]),
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 36,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                )
+                              : Text(" "),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Obx(
+                        () => Text(
+                          userController.user["name"] != null
+                              ? userController.user["name"]
+                              : " ",
+                          textAlign: TextAlign.center,
                           style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 36,
+                            fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'abdinajiib mohamed hassan',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
                       const SizedBox(height: 4),
-                      const Text(
-                        'naji@gmail.com',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey,
+                      Obx(
+                        () => Text(
+                          userController.user["email"] != null
+                              ? userController.user["email"]
+                              : " ",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey,
+                          ),
                         ),
                       ),
                     ],
@@ -83,21 +107,38 @@ class _UserAccountPageState extends State<UserAccountPage> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                AccountCard(
-                  icon: Icons.account_balance_wallet,
-                  color: Colors.green,
-                  label: 'USDT (TRC-20)',
-                  value: 'TRXb...cbrE',
-                ),
-                const SizedBox(height: 12),
-                AccountCard(
-                  icon: Icons.phone_android,
-                  color: Colors.blue,
-                  label: 'EVC',
-                  value: '612544158',
-                ),
-                const SizedBox(height: 32),
+                Obx(() {
+                  final accounts = userController.user["accounts"];
+                  if (accounts == null || accounts.isEmpty) {
+                    return Center(
+                      child: Text(
+                        "No accounts found",
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    );
+                  }
 
+                  return ListView.builder(
+                    shrinkWrap:
+                        true, // Ensure the ListView doesn't take infinite height
+                    physics:
+                        NeverScrollableScrollPhysics(), // Disable scrolling for the inner ListView
+                    itemCount: accounts.length,
+                    itemBuilder: (context, index) {
+                      return AccountCard(
+                        icon: Icons.account_balance_wallet,
+                        color: Colors.blue,
+                        label: accounts[index]["type"],
+                        value: accounts[index]["type"].contains("USDT")
+                            ? accounts[index]["usdtAddress"]
+                            : accounts[index]["phoneNumber"],
+                      );
+                    },
+                  );
+                }),
                 // Options
                 ListTile(
                   leading: const Icon(Icons.add_circle_outline),
@@ -113,7 +154,7 @@ class _UserAccountPageState extends State<UserAccountPage> {
                     );
                   },
                 ),
-
+                
                 ListTile(
                   leading: const Icon(Icons.logout),
                   title: const Text('Sign out'),
@@ -175,13 +216,19 @@ class AccountCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
       ),
       child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: color,
-          child: Icon(
-            icon,
-            color: Colors.white,
-          ),
-        ),
+        leading: label.contains("USDT")
+            ? Image(
+                image: AssetImage(label.contains("BEP-20")
+                    ? 'assets/images/usdt-pep20.png'
+                    : 'assets/images/usdt-trc20.png'),
+                width: 40,
+                height: 40)
+            : SvgPicture.asset(
+                'assets/images/${label.toLowerCase()}.svg',
+                width: 40,
+                height: 40,
+              ),
+      
         title: Text(label),
         subtitle: Text(value),
       ),
