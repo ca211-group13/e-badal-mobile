@@ -78,6 +78,7 @@ flutter:
     - assets/images/usdt.svg
     - assets/images/usdt-trc20.png
     - assets/images/usdt-pep20.png
+    - assets/images/bnb.png
     - assets/images/trx.png
     - assets/images/qr-code.png
   #   - images/a_dot_ham.jpeg

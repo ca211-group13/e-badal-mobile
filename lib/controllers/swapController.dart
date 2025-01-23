@@ -33,12 +33,12 @@ class SwapController extends GetxController {
     ),
     CurrencyOption(
       name: 'Zaad Service',
-      symbol: 'ZAAD',
+      symbol: 'Zaad',
       svgAsset: 'assets/images/zaad.svg',
     ),
     CurrencyOption(
       name: 'Sahal Service',
-      symbol: 'SAHAL',
+      symbol: 'Sahal',
       svgAsset: 'assets/images/sahal.svg',
     ),
   ];
@@ -97,7 +97,7 @@ class SwapController extends GetxController {
   }
 
   // Format address to show only start and end
-  String _formatAddress(String address) {
+  String formatAddress(String address) {
     if (address.length < 10) return address;
     return "${address.substring(0, 6)}...${address.substring(address.length - 4)}";
   }
@@ -115,10 +115,10 @@ class SwapController extends GetxController {
             'USDT(${fromCurrency.value?.chain == 'TRON' ? 'TRC-20' : 'BEP-20'})',
         orElse: () => {},
       );
-      fromAddress.value = _formatAddress(usdtAccount['usdtAddress'] ?? '');
-    } else if (fromCurrency.value?.symbol == 'EVC') {
+      fromAddress.value = usdtAccount['usdtAddress'];
+    } else {
       final evcAccount = userAccounts.firstWhere(
-        (account) => account['type'] == 'EVC',
+        (account) => account['type'] == fromCurrency.value?.symbol,
         orElse: () => {},
       );
       fromAddress.value = evcAccount['phoneNumber'] ?? '';
@@ -132,10 +132,10 @@ class SwapController extends GetxController {
             'USDT(${toCurrency.value?.chain == 'TRON' ? 'TRC-20' : 'BEP-20'})',
         orElse: () => {},
       );
-      toAddress.value = _formatAddress(usdtAccount['usdtAddress'] ?? '');
-    } else if (toCurrency.value?.symbol == 'EVC') {
+      toAddress.value = usdtAccount['usdtAddress'];
+    } else {
       final evcAccount = userAccounts.firstWhere(
-        (account) => account['type'] == 'EVC',
+        (account) => account['type'] == toCurrency.value?.symbol,
         orElse: () => {},
       );
       toAddress.value = evcAccount['phoneNumber'] ?? '';

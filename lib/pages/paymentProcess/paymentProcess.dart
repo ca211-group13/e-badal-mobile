@@ -1,4 +1,5 @@
 import 'package:crypto_to_local_exchange_app/controller/userController.dart';
+import 'package:crypto_to_local_exchange_app/controllers/transactionController.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -21,6 +22,7 @@ class _PaymentProcessScreenState extends State<PaymentProcessScreen> {
   int activeStep = 0;
   final swapController = Get.find<SwapController>();
   final userController = Get.put(UserController());
+  final transactionController = Get.put(TransactionControler());
   late double serviceFee;
   late double receiveAmount;
 
@@ -211,7 +213,8 @@ class _PaymentProcessScreenState extends State<PaymentProcessScreen> {
                         Obx(() => Text(
                               swapController.fromAddress.value.isEmpty
                                   ? "No address"
-                                  : swapController.fromAddress.value,
+                                  : swapController.formatAddress(
+                                      swapController.fromAddress.value),
                               style: TextStyle(
                                 fontSize: 14,
                                 color: Colors.black87,
@@ -250,7 +253,8 @@ class _PaymentProcessScreenState extends State<PaymentProcessScreen> {
                         Obx(() => Text(
                               swapController.toAddress.value.isEmpty
                                   ? "No address"
-                                  : swapController.toAddress.value,
+                                  : swapController.formatAddress(
+                                      swapController.toAddress.value),
                               style: TextStyle(
                                 fontSize: 14,
                                 color: Colors.black87,
@@ -288,9 +292,9 @@ class _PaymentProcessScreenState extends State<PaymentProcessScreen> {
                   children: [
                     Obx(() {
                       final isLocalMoney =
-                          swapController.fromCurrency.value?.symbol == 'ZAAD' ||
+                          swapController.fromCurrency.value?.symbol == 'Zaad' ||
                               swapController.fromCurrency.value?.symbol ==
-                                  'SAHAL' ||
+                                  'Sahal' ||
                               swapController.fromCurrency.value?.symbol ==
                                   'EVC';
 
@@ -333,10 +337,16 @@ class _PaymentProcessScreenState extends State<PaymentProcessScreen> {
                                           'tel:*712*612544158*100%23');
                                       launchUrl(ussdCode);
                                     },
-                                    icon: Icon(Icons.phone),
-                                    label: Text("Bixi Lacagta"),
+                                    icon: Icon(
+                                      Icons.phone,
+                                      color: Colors.white,
+                                    ),
+                                    label: Text(
+                                      "Bixi Lacagta",
+                                      style: TextStyle(color: Colors.white),
+                                    ),
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.orange,
+                                      backgroundColor: Colors.green,
                                       padding: EdgeInsets.symmetric(
                                           horizontal: 30, vertical: 15),
                                       shape: RoundedRectangleBorder(
@@ -401,14 +411,13 @@ class _PaymentProcessScreenState extends State<PaymentProcessScreen> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Container(
-                                    child: Obx(() {
-                                      // Generate QR code based on the current address
-                                      return Image.asset(
-                                        'assets/images/qr-code.png', // Replace with QR code generation
-                                        width: 130,
-                                        height: 130,
-                                      );
-                                    }),
+                                    child:
+                                        // Generate QR code based on the current address
+                                        Image.asset(
+                                      'assets/images/qr-code.png', // Replace with QR code generation
+                                      width: 130,
+                                      height: 130,
+                                    ),
                                   ),
                                   Padding(
                                     padding: const EdgeInsets.only(top: 8.0),
@@ -435,9 +444,9 @@ class _PaymentProcessScreenState extends State<PaymentProcessScreen> {
                 // Dynamic Address/Instructions Section
                 Obx(() {
                   final isLocalMoney =
-                      swapController.fromCurrency.value?.symbol == 'ZAAD' ||
+                      swapController.fromCurrency.value?.symbol == 'Zaad' ||
                           swapController.fromCurrency.value?.symbol ==
-                              'SAHAL' ||
+                              'Sahal' ||
                           swapController.fromCurrency.value?.symbol == 'EVC';
 
                   if (!isLocalMoney) {
@@ -535,6 +544,7 @@ class _PaymentProcessScreenState extends State<PaymentProcessScreen> {
           child: ElevatedButton(
             onPressed: () {
               setState(() {
+                transactionController.createTransaction();
                 if (activeStep < 2) activeStep++;
               });
             },
