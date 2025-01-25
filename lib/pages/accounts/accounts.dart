@@ -1,5 +1,7 @@
+import 'package:crypto_to_local_exchange_app/controllers/accountsController.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get/get.dart';
 
 class AccountType {
   final String name;
@@ -50,7 +52,7 @@ class _AddAccountDialogState extends State<AddAccountDialog> {
       validationPattern: r'^[0-9]{9}$',
     ),
     AccountType(
-      'USDT (BEP-20)',
+      'USDT(BEP-20)',
       'assets/images/usdtbep20.svg',
       isLocalAccount: false,
       hintText: 'Enter BEP-20 wallet address',
@@ -58,7 +60,8 @@ class _AddAccountDialogState extends State<AddAccountDialog> {
       validationPattern: r'^0x[a-fA-F0-9]{40}$',
     ),
     AccountType(
-      'USDT (TRC-20)',
+      //['EVC', 'Sahal', 'Zaad', 'USDT(TRC-20)','USDT(BEP-20)'],
+      'USDT(TRC-20)',
       'assets/images/USDTTRC20.svg',
       isLocalAccount: false,
       hintText: 'Enter TRC-20 wallet address',
@@ -87,7 +90,6 @@ class _AddAccountDialogState extends State<AddAccountDialog> {
   late AccountType selectedAccountType;
   final TextEditingController accountValueController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-
   @override
   void initState() {
     super.initState();
@@ -138,6 +140,7 @@ class _AddAccountDialogState extends State<AddAccountDialog> {
     return null;
   }
 
+  final accountControllers = Get.put(AccountsController());
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -265,6 +268,17 @@ class _AddAccountDialogState extends State<AddAccountDialog> {
                           accountValueController.text,
                         );
                       }
+                      accountControllers.type.value = selectedAccountType.name;
+                      accountControllers.AccountVlue.value =
+                          accountValueController.text;
+                      accountControllers.addAccount();
+                      if (widget.onAccountAdded != null) {
+                        widget.onAccountAdded!(
+                          selectedAccountType,
+                          accountValueController.text,
+                        );
+                      }
+
                       Navigator.pop(context);
                     }
                   },

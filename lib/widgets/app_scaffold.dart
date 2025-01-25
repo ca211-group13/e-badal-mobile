@@ -30,16 +30,16 @@ class _AppScaffoldState extends State<AppScaffold> {
 
     switch (index) {
       case 0: // Home
-        Navigator.pushReplacementNamed(context, '/');
+        Get.offNamed('/');
         break;
       case 1: // Accounts
-        Navigator.pushReplacementNamed(context, '/accounts');
+        Get.offNamed('/');
         break;
       case 3: // Wallet
-        Navigator.pushReplacementNamed(context, '/accounts');
+        Get.offNamed('/transactions');
         break;
       case 4: // Profile
-        Navigator.pushReplacementNamed(context, '/profile');
+        Get.offNamed('/profile');
         break;
     }
 
@@ -78,8 +78,8 @@ class _AppScaffoldState extends State<AppScaffold> {
                   label: '',
                 ),
                 BottomNavigationBarItem(
-                  icon: Icon(Icons.account_balance_wallet),
-                  label: 'Wallet',
+                  icon: Icon(Icons.swap_vert_circle),
+                  label: 'history',
                 ),
                 BottomNavigationBarItem(
                   icon: Icon(Icons.person),
@@ -95,7 +95,10 @@ class _AppScaffoldState extends State<AppScaffold> {
                 backgroundColor: Colors.orange,
                 onPressed: () {
                   final swapController = Get.find<SwapController>();
-                  if (swapController.fromAmount.value.isEmpty) {
+                  // Trim leading zeros and check if the amount is empty or "0"
+                  final trimmedAmount = swapController.fromAmount.value
+                      .replaceAll(RegExp(r'^0+'), '');
+                  if (trimmedAmount.isEmpty || trimmedAmount == "0") {
                     Get.snackbar(
                       'empty', // Title
                       'Please enter an amount', // Message

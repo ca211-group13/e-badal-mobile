@@ -6,6 +6,7 @@ import 'package:crypto_to_local_exchange_app/pages/paymentProcess/paymentProcess
 import 'package:crypto_to_local_exchange_app/pages/profile/cryptoProfileScreen.dart';
 import 'package:crypto_to_local_exchange_app/middleware/auth_middleware.dart';
 import 'package:crypto_to_local_exchange_app/controller/userController.dart';
+import 'package:crypto_to_local_exchange_app/pages/transactions/transactions.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -60,6 +61,11 @@ class MyApp extends StatelessWidget {
         GetPage(
           name: '/payment',
           page: () => PaymentProcessScreen(),
+          middlewares: [AuthMiddleware()],
+        ),
+        GetPage(
+          name: '/transactions',
+          page: () => TransactionsPage(),
           middlewares: [AuthMiddleware()],
         ),
       ],

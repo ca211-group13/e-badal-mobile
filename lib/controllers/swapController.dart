@@ -104,8 +104,11 @@ class SwapController extends GetxController {
 
   void setExchangeAccounts() {
     final userMap = Get.find<UserController>().user.value;
-    if (userMap == null || !(userMap['accounts'] is List)) return;
-
+  if (userMap == null || !(userMap['accounts'] is List)) {
+    fromAddress.value = '';
+    toAddress.value = '';
+    return;
+  }
     final userAccounts = userMap['accounts'] as List;
     // Find matching account for fromCurrency
     if (fromCurrency.value?.symbol == 'USDT') {
@@ -115,7 +118,7 @@ class SwapController extends GetxController {
             'USDT(${fromCurrency.value?.chain == 'TRON' ? 'TRC-20' : 'BEP-20'})',
         orElse: () => {},
       );
-      fromAddress.value = usdtAccount['usdtAddress'];
+      fromAddress.value = usdtAccount['usdtAddress']??'';
     } else {
       final evcAccount = userAccounts.firstWhere(
         (account) => account['type'] == fromCurrency.value?.symbol,
@@ -132,7 +135,7 @@ class SwapController extends GetxController {
             'USDT(${toCurrency.value?.chain == 'TRON' ? 'TRC-20' : 'BEP-20'})',
         orElse: () => {},
       );
-      toAddress.value = usdtAccount['usdtAddress'];
+      toAddress.value = usdtAccount['usdtAddress']??'';
     } else {
       final evcAccount = userAccounts.firstWhere(
         (account) => account['type'] == toCurrency.value?.symbol,

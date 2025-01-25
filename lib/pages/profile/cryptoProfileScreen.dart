@@ -37,11 +37,11 @@ class _UserAccountPageState extends State<UserAccountPage> {
       return name.substring(0, 1).toUpperCase();
     }
 
-    print(userController.user);
 
     return AppScaffold(
       body: SafeArea(
-        child: SingleChildScrollView(
+          child: Obx(() => userController.user.isNotEmpty
+              ? SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -189,8 +189,8 @@ class _UserAccountPageState extends State<UserAccountPage> {
               ],
             ),
           ),
-        ),
-      ),
+                )
+              : Center(child: CircularProgressIndicator()))),
     );
   }
 }

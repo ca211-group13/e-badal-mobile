@@ -1,4 +1,5 @@
 // crypto_swap_screen.dart
+import 'package:crypto_to_local_exchange_app/controller/userController.dart';
 import 'package:crypto_to_local_exchange_app/pages/paymentProcess/paymentProcess.dart';
 import 'package:crypto_to_local_exchange_app/widgets/paymentDetails%20.dart';
 import 'package:crypto_to_local_exchange_app/widgets/transactionList.dart';
@@ -20,6 +21,7 @@ class _CryptoSwapScreenState extends State<CryptoSwapScreen> {
   final TextEditingController _fromController = TextEditingController();
   final TextEditingController _toController = TextEditingController();
   final swapController = Get.put(SwapController());
+  final userController = Get.find<UserController>();
 
   @override
   void initState() {
@@ -29,6 +31,7 @@ class _CryptoSwapScreenState extends State<CryptoSwapScreen> {
     ever(swapController.toAmount, (value) {
       _toController.text = value.toString();
     });
+    userController.getUsersProfile();
   }
 
   @override
@@ -218,7 +221,11 @@ class _CryptoSwapScreenState extends State<CryptoSwapScreen> {
                   ],
                 ),
               ),
-              TransactionList(),
+              TransactionList(
+                limit: 5,
+                enableBlur: true,
+                useContainer: true,
+              ),
             ],
           ),
         ),

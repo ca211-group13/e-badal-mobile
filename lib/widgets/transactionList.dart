@@ -1,44 +1,58 @@
+import 'package:crypto_to_local_exchange_app/controllers/transactionController.dart';
 import 'package:flutter/material.dart';
 import 'package:blur/blur.dart';
 import 'package:flutter/widgets.dart';
+import 'package:get/get.dart';
 
 class TransactionList extends StatefulWidget {
+  final int? limit;
+  final bool enableBlur;
+  final bool useContainer;
+  
+  const TransactionList({
+    Key? key, 
+    this.limit,
+    this.enableBlur = false,
+    this.useContainer = true,
+  }) : super(key: key);
+  
   @override
   _TransactionListState createState() => _TransactionListState();
 }
 
 class _TransactionListState extends State<TransactionList> {
   bool _isBlurred = true;
-
-  void _toggleBlur() {
-    setState(() {
-      _isBlurred = !_isBlurred;
-    });
-  }
+  final transactionController = Get.put(TransactionControler());
 
   @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        width: double.infinity,
-        height: double.infinity,
-        padding: EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(25),
-          color: Colors.white,
-        ),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Transactions",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+  void initState() {
+    super.initState();
+    transactionController.fetchTransactionHistory();
+  }
+
+  void _toggleBlur() {
+    if (widget.enableBlur) {
+      setState(() {
+        _isBlurred = !_isBlurred;
+      });
+    }
+  }
+
+  Widget _buildContent() {
+    return Column(
+      children: [
+        if (widget.useContainer) 
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Transactions",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
                 ),
+              ),
+              if (widget.enableBlur)
                 GestureDetector(
                   onTap: _toggleBlur,
                   child: Padding(
@@ -48,39 +62,80 @@ class _TransactionListState extends State<TransactionList> {
                         : Icons.remove_red_eye),
                   ),
                 )
-                // TextButton(
-                //   onPressed: _toggleBlur,
-                //   child: Text(
-                //     _isBlurred ? "Show" : "Hide",
-                //     style: TextStyle(
-                //       color: Colors.blue,
-                //       fontWeight: FontWeight.bold,
-                //     ),
-                //   ),
-                // ),
-              ],
-            ),
-            Expanded(
-              child: ListView.builder(
-                padding: EdgeInsets.all(16),
-                itemCount: 2,
-                itemBuilder: (context, index) {
-                  return _isBlurred
-                      ? Blur(
-                          blur: 8,
-                          colorOpacity: 0.1,
-                          child: _buildTransactionItem())
-                      : _buildTransactionItem();
-                },
-              ),
-            ),
-          ],
+            ],
+          ),
+        Expanded(
+          child: Obx(() {
+            if (transactionController.isLoading.value) {
+              return Center(child: CircularProgressIndicator());
+            }
+            
+            final transactions = widget.limit != null
+                ? transactionController.transactions.take(widget.limit!).toList()
+                : transactionController.transactions;
+                
+            return ListView.builder(
+              padding: EdgeInsets.all(widget.useContainer ? 16 : 0),
+              itemCount: transactions.length,
+              itemBuilder: (context, index) {
+                final transaction = transactions[index];
+                return widget.enableBlur && _isBlurred
+                    ? Blur(
+                        blur: 8,
+                        colorOpacity: 0.1,
+                        child: _buildTransactionItem(transaction))
+                    : _buildTransactionItem(transaction);
+              },
+            );
+          }),
         ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!widget.useContainer) {
+      return Expanded(child: _buildContent());
+    }
+
+    return Expanded(
+      child: Container(
+        width: double.infinity,
+        height: double.infinity,
+        padding: EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(25),
+          color: Colors.white,
+        ),
+        child: _buildContent(),
       ),
     );
   }
 
-  Widget _buildTransactionItem() {
+  Widget _buildTransactionItem(Map<String, dynamic> transaction) {
+    IconData getTransactionIcon() {
+      switch (transaction['type'].toString().toLowerCase()) {
+        case 'deposit':
+          return Icons.arrow_downward;
+        case 'withdrawal':
+          return Icons.arrow_upward;
+        default:
+          return Icons.swap_horiz;
+      }
+    }
+
+    Color getTransactionColor() {
+      switch (transaction['type'].toString().toLowerCase()) {
+        case 'deposit':
+          return Colors.green;
+        case 'withdrawal':
+          return Colors.red;
+        default:
+          return Colors.blue;
+      }
+    }
+
     return Container(
       margin: EdgeInsets.only(bottom: 16),
       padding: EdgeInsets.all(16),
@@ -100,46 +155,48 @@ class _TransactionListState extends State<TransactionList> {
         children: [
           Row(
             children: [
-              CircleAvatar(
-                backgroundColor: Colors.yellow,
-                child: Text(
-                  "B",
-                  style: TextStyle(color: Colors.white),
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: getTransactionColor().withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  getTransactionIcon(),
+                  color: getTransactionColor(),
                 ),
               ),
-              SizedBox(width: 10),
+              SizedBox(width: 12),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "BNB TO USDT",
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    transaction['type'].toString().toUpperCase(),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
                   ),
                   Text(
-                    "PENDING",
+                    DateTime.parse(transaction['createdAt']).toString().substring(0, 16),
                     style: TextStyle(
-                      color: Colors.orange,
-                      fontWeight: FontWeight.w600,
+                      color: Colors.grey,
+                      fontSize: 12,
                     ),
                   ),
                 ],
               ),
             ],
           ),
-          _isBlurred
-              ? Blur(
-                  blur: 8,
-                  colorOpacity: 0.1,
-                  borderRadius: BorderRadius.circular(12),
-                  child: Text(
-                    "\$200",
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                )
-              : Text(
-                  "\$200",
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
+          Text(
+            '\$${transaction['amount']}',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              color: getTransactionColor(),
+            ),
+          ),
         ],
       ),
     );
