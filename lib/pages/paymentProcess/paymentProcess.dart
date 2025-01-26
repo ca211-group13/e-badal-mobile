@@ -19,7 +19,6 @@ class PaymentProcessScreen extends StatefulWidget {
 
 class _PaymentProcessScreenState extends State<PaymentProcessScreen> {
   bool _copied = false;
-  int activeStep = 0;
   final swapController = Get.find<SwapController>();
   final userController = Get.find<UserController>();
   final transactionController = Get.put(TransactionControler());
@@ -88,85 +87,94 @@ class _PaymentProcessScreenState extends State<PaymentProcessScreen> {
       ),
       body: Column(
         children: [
-          Container(
-            height: 100,
-            padding: EdgeInsets.only(top: 5, bottom: 0),
-            child: EasyStepper(
-              activeStep: activeStep,
-              showStepBorder: false,
-              enableStepTapping: false,
-              activeStepBackgroundColor: Colors.transparent,
-              finishedStepBackgroundColor: Colors.transparent,
-              internalPadding: 25,
-              showLoadingAnimation: false,
-              stepRadius: 18,
-              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 0),
-              activeStepTextColor: Colors.orange,
-              finishedStepTextColor: Colors.black87,
-              defaultStepBorderType: BorderType.normal,
-              steps: [
-                EasyStep(
-                  customStep: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: activeStep >= 0
-                          ? Colors.orange
-                          : Colors.grey.shade200,
-                      borderRadius: BorderRadius.circular(8),
+          Obx(
+            () => Container(
+              height: 100,
+              padding: EdgeInsets.only(top: 5, bottom: 0),
+              child: EasyStepper(
+                activeStep: transactionController.activeStep.value,
+                showStepBorder: false,
+                enableStepTapping: false,
+                activeStepBackgroundColor: Colors.transparent,
+                finishedStepBackgroundColor: Colors.transparent,
+                internalPadding: 25,
+                showLoadingAnimation: false,
+                stepRadius: 18,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 15, vertical: 0),
+                activeStepTextColor: Colors.orange,
+                finishedStepTextColor: Colors.black87,
+                defaultStepBorderType: BorderType.normal,
+                steps: [
+                  EasyStep(
+                    customStep: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: transactionController.activeStep.value >= 0
+                            ? Colors.orange
+                            : Colors.grey.shade200,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.payment,
+                        color: transactionController.activeStep.value >= 0
+                            ? Colors.white
+                            : Colors.grey.shade500,
+                        size: 20,
+                      ),
                     ),
-                    child: Icon(
-                      Icons.payment,
-                      color:
-                          activeStep >= 0 ? Colors.white : Colors.grey.shade500,
-                      size: 20,
-                    ),
+                    title: 'Payment',
                   ),
-                  title: 'Payment',
-                ),
-                EasyStep(
-                  customStep: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: activeStep >= 1
-                          ? Colors.orange
-                          : Colors.grey.shade200,
-                      borderRadius: BorderRadius.circular(8),
+                  EasyStep(
+                    customStep: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: transactionController.activeStep.value >= 1
+                            ? Colors.orange
+                            : Colors.grey.shade200,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.rate_review,
+                        color: transactionController.activeStep.value >= 1
+                            ? Colors.white
+                            : Colors.grey.shade500,
+                        size: 20,
+                      ),
                     ),
-                    child: Icon(
-                      Icons.rate_review,
-                      color:
-                          activeStep >= 1 ? Colors.white : Colors.grey.shade500,
-                      size: 20,
-                    ),
+                    title: 'Review',
                   ),
-                  title: 'Review',
-                ),
-                EasyStep(
-                  customStep: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: activeStep >= 2
-                          ? Colors.orange
-                          : Colors.grey.shade200,
-                      borderRadius: BorderRadius.circular(8),
+                  EasyStep(
+                    customStep: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: transactionController.activeStep.value >= 2
+                            ? Colors.orange
+                            : Colors.grey.shade200,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.check_circle,
+                        color: transactionController.activeStep.value >= 2
+                            ? Colors.white
+                            : Colors.grey.shade500,
+                        size: 20,
+                      ),
                     ),
-                    child: Icon(
-                      Icons.check_circle,
-                      color:
-                          activeStep >= 2 ? Colors.white : Colors.grey.shade500,
-                      size: 20,
-                    ),
+                    title: 'Complete',
                   ),
-                  title: 'Complete',
-                ),
-              ],
-              onStepReached: (index) => setState(() => activeStep = index),
+                ],
+                onStepReached: (index) =>
+                    transactionController.activeStep.value = index,
+              ),
             ),
           ),
-          Expanded(child: _buildStepContent(activeStep))
+          Expanded(
+              child: Obx(() =>
+                  _buildStepContent(transactionController.activeStep.value)))
         ],
       ),
     );
@@ -546,28 +554,15 @@ class _PaymentProcessScreenState extends State<PaymentProcessScreen> {
               onPressed: () async {
                 try {
                   // Show loading indicator
-                  setState(() {
-                    transactionController.isLoading.value = true;
-                  });
+                  transactionController.isLoading.value = true;
 
                   // Create transaction
                   await transactionController.createTransaction();
-
-                  // Update the step only if transaction was successful
-                  if (mounted) {
-                    setState(() {
-                      if (activeStep < 2) activeStep++;
-                    });
-                  }
                 } catch (e) {
                   // Error is already handled in the controller
                 } finally {
                   // Hide loading indicator
-                  if (mounted) {
-                    setState(() {
-                      transactionController.isLoading.value = false;
-                    });
-                  }
+                  transactionController.isLoading.value = false;
                 }
               },
               style: ElevatedButton.styleFrom(
@@ -602,6 +597,7 @@ class _PaymentProcessScreenState extends State<PaymentProcessScreen> {
   }
 
   Widget ReviewStep() {
+    userController.startProfileRefetching();
     return Obx(() {
       // Show loading state while fetching transaction details
       if (userController.pendingTransaction.isEmpty) {
@@ -651,7 +647,8 @@ class _PaymentProcessScreenState extends State<PaymentProcessScreen> {
       }
 
       // Show transaction details
-      final transaction = userController.pendingTransaction["lastPendingTransaction"];
+      final transaction =
+          userController.pendingTransaction["lastPendingTransaction"];
 
       return Column(
         children: [
@@ -913,6 +910,9 @@ class _PaymentProcessScreenState extends State<PaymentProcessScreen> {
   }
 
   Widget CompleteStep() {
+    userController.stopRefetching();
+    print("........................");
+    print(userController.lastTransactionStatus.value);
     return Column(
       children: [
         Expanded(
@@ -948,6 +948,7 @@ class _PaymentProcessScreenState extends State<PaymentProcessScreen> {
           padding: EdgeInsets.all(20),
           child: ElevatedButton(
             onPressed: () {
+              userController.stopRefetching();
               Get.back();
             },
             style: ElevatedButton.styleFrom(

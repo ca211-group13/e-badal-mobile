@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:convert';
 
+import 'package:crypto_to_local_exchange_app/controllers/transactionController.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
@@ -16,12 +18,42 @@ class UserController extends GetxController {
   var Token = ''.obs;
   final user = {}.obs;
   final pendingTransaction = {}.obs;
+  Timer? _timer;
+  final lastTransactionStatus = "".obs;
 
   @override
   void onInit() {
     super.onInit();
     // Check if token exists in storage
     initializeToken();
+
+    // Listen for changes in lastTransactionStatus
+    ever(lastTransactionStatus, (status) {
+      if (status == "success" || status == "failed") {
+        // Stop refetching immediately
+        stopRefetching();
+        print('Refetching stopped. Last transaction status: $status');
+
+        // Increment the step in TransactionController
+        final transactionController = Get.find<TransactionControler>();
+        transactionController.activeStep.value = 2; // Move to the next step
+        print('Step incremented to: ${transactionController.activeStep.value}');
+      }
+    });
+  }
+
+  @override
+  void onClose() {
+    stopRefetching(); // Ensure the timer is canceled when the controller is closed
+    super.onClose();
+  }
+
+  // Helper method to stop refetching
+  void stopRefetching() {
+    if (_timer != null) {
+      _timer!.cancel();
+      _timer = null; // Clear the timer reference
+    }
   }
 
   Future<void> initializeToken() async {
@@ -44,6 +76,7 @@ class UserController extends GetxController {
     confermPasswordController.clear();
     nameController.clear();
     // Navigate to login screen
+    stopRefetching(); // Stop refetching on logout
     Get.offAllNamed('/signin');
   }
 
@@ -152,6 +185,10 @@ class UserController extends GetxController {
           "isTherePendingTransaction": data["isTherePendingTransaction"],
           "lastPendingTransaction": data["lastPendingTransaction"]
         };
+        if (data["lastTransactionStatus"] != null) {
+          lastTransactionStatus.value = data["lastTransactionStatus"] ?? "";
+          print("Last transaction status: ${lastTransactionStatus.value}");
+        }
       } else {
         print(response.statusCode);
         Get.snackbar(
@@ -162,7 +199,7 @@ class UserController extends GetxController {
         );
       }
     } catch (e) {
-      print("there is......${e}");
+      print("Error: $e");
       Get.snackbar(
         "Error",
         "Network error: $e",
@@ -171,6 +208,18 @@ class UserController extends GetxController {
       );
     } finally {
       loading.value = false;
+    }
+  }
+
+  void startProfileRefetching() {
+    if (lastTransactionStatus.value != "failed" &&
+        lastTransactionStatus.value != "success") {
+      _timer = Timer.periodic(Duration(seconds: 5), (timer) {
+        getUsersProfile();
+        print('Refetching profile...');
+      });
+    } else {
+      stopRefetching(); // Stop refetching if the status is already "success" or "failed"
     }
   }
 }

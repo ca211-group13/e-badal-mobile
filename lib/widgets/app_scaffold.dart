@@ -94,6 +94,7 @@ class _AppScaffoldState extends State<AppScaffold> {
               child: FloatingActionButton(
                 backgroundColor: Colors.orange,
                 onPressed: () {
+                  print("clicked");
                   final swapController = Get.find<SwapController>();
                   // Trim leading zeros and check if the amount is empty or "0"
                   final trimmedAmount = swapController.fromAmount.value

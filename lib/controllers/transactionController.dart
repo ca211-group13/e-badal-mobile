@@ -68,6 +68,7 @@ class TransactionControler extends GetxController {
         
         // Fetch updated profile to get new pending transaction
         await userController.getUsersProfile();
+        isLoading.value = false;
         
         Get.snackbar(
           "Success",
@@ -76,7 +77,8 @@ class TransactionControler extends GetxController {
           colorText: Colors.white,
         );
         
-        activeStep.value = 1;
+        // Move to next step after successful transaction
+        activeStep.value++;
       } else {
         throw Exception(json.decode(response.body)['message'] ?? 'Failed to create transaction');
       }
