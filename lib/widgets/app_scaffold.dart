@@ -24,6 +24,64 @@ class AppScaffold extends StatefulWidget {
 
 class _AppScaffoldState extends State<AppScaffold> {
   int _selectedIndex = 2;
+  final swapController = Get.find<SwapController>();
+
+  @override
+  void initState() {
+    super.initState();
+    // Ensure GetX is properly initialized
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Get.put(Get.find<SwapController>());
+    });
+  }
+
+  void _showValidationError(String title, String message) {
+    if (!Get.isSnackbarOpen) {
+      Get.snackbar(
+        title,
+        message,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red[700],
+        colorText: Colors.white,
+        borderRadius: 8,
+        margin: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        icon: const Icon(Icons.error_outline, color: Colors.white),
+        shouldIconPulse: true,
+        duration: const Duration(seconds: 3),
+        forwardAnimationCurve: Curves.easeOutBack,
+      );
+    }
+  }
+
+  void _validateAndProceed() {
+    // Trim leading zeros and check if the amount is empty or "0"
+    final trimmedAmount =
+        swapController.fromAmount.value.replaceAll(RegExp(r'^0+'), '');
+    if (trimmedAmount.isEmpty || trimmedAmount == "0") {
+      _showValidationError(
+        'Invalid Amount',
+        'Please enter a valid amount to proceed',
+      );
+      return;
+    }
+
+    swapController.setExchangeAccounts();
+    if (swapController.fromAddress.isEmpty ||
+        swapController.toAddress.isEmpty) {
+      final missingCurrency = swapController.fromAddress.isEmpty
+          ? swapController.fromCurrency.value?.name
+          : swapController.toCurrency.value?.name;
+
+      _showValidationError(
+        'Missing Address',
+        'Please add your $missingCurrency address to continue',
+      );
+      return;
+    }
+
+    Get.to(() => const PaymentProcessScreen());
+  }
 
   void _onItemTapped(int index) {
     if (index == _selectedIndex) return;
@@ -64,7 +122,7 @@ class _AppScaffoldState extends State<AppScaffold> {
               unselectedItemColor: Colors.black,
               currentIndex: _selectedIndex,
               onTap: _onItemTapped,
-              items: [
+              items: const [
                 BottomNavigationBarItem(
                   icon: Icon(Icons.home),
                   label: 'home',
@@ -93,59 +151,8 @@ class _AppScaffoldState extends State<AppScaffold> {
               alignment: Alignment.topCenter,
               child: FloatingActionButton(
                 backgroundColor: Colors.orange,
-                onPressed: () {
-                  print("clicked");
-                  final swapController = Get.find<SwapController>();
-                  // Trim leading zeros and check if the amount is empty or "0"
-                  final trimmedAmount = swapController.fromAmount.value
-                      .replaceAll(RegExp(r'^0+'), '');
-                  if (trimmedAmount.isEmpty || trimmedAmount == "0") {
-                    Get.snackbar(
-                      'empty', // Title
-                      'Please enter an amount', // Message
-                      animationDuration:
-                          Duration(milliseconds: 300), // Smooth animation
-                      backgroundColor: Colors.red[700], // Dark red background
-                      colorText: Colors.white, // White text
-                      snackPosition: SnackPosition.TOP, // Display at the top
-                      borderRadius: 8, // Rounded corners
-                      margin: EdgeInsets.all(16), // Margin around the Snackbar
-                      padding: EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 14), // Inner padding
-                      icon: Icon(Icons.error_outline,
-                          color: Colors.white), // Add an icon
-                      shouldIconPulse: true, // Animate the icon
-                      duration: Duration(seconds: 3), // Display duration
-                    );
-                    return;
-                  }
-
-                  swapController.setExchangeAccounts();
-                  if (swapController.fromAddress.isEmpty ||
-                      swapController.toAddress.isEmpty) {
-                    Get.snackbar(
-                      'missin ',
-                      'Please add your ${swapController.fromAddress.isEmpty ? swapController.fromCurrency.value?.name : swapController.toCurrency.value?.name} addres',
-                      animationDuration:
-                          Duration(milliseconds: 300), // Smooth animation
-                      backgroundColor: Colors.red[700], // Dark red background
-                      colorText: Colors.white, // White text
-                      snackPosition: SnackPosition.TOP, // Display at the top
-                      borderRadius: 8, // Rounded corners
-                      margin: EdgeInsets.all(16), // Margin around the Snackbar
-                      padding: EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 14), // Inner padding
-                      icon: Icon(Icons.error_outline,
-                          color: Colors.white), // Add an icon
-                      shouldIconPulse: true, // Animate the icon
-                      duration: Duration(seconds: 3), // Display duration
-                    );
-                    return;
-                  }
-
-                  Get.to(() => const PaymentProcessScreen());
-                },
-                child: Icon(Icons.swap_vert, color: Colors.white),
+                onPressed: _validateAndProceed,
+                child: const Icon(Icons.swap_vert, color: Colors.white),
               ),
             ),
           ),

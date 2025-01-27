@@ -558,6 +558,7 @@ class _PaymentProcessScreenState extends State<PaymentProcessScreen> {
 
                   // Create transaction
                   await transactionController.createTransaction();
+                  userController.startProfileRefetching();
                 } catch (e) {
                   // Error is already handled in the controller
                 } finally {
@@ -623,6 +624,16 @@ class _PaymentProcessScreenState extends State<PaymentProcessScreen> {
 
       // Show message if no pending transaction
       if (!userController.pendingTransaction["isTherePendingTransaction"]) {
+        // Schedule the state update for after the build is complete
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (userController.lastTransactionStatus.value == "failed") {
+            transactionController.activeStep.value = 2;
+          } else if (userController.lastTransactionStatus.value ==
+              "completed") {
+            transactionController.activeStep.value = 2;
+          }
+        });
+
         return Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -911,8 +922,6 @@ class _PaymentProcessScreenState extends State<PaymentProcessScreen> {
 
   Widget CompleteStep() {
     userController.stopRefetching();
-    print("........................");
-    print(userController.lastTransactionStatus.value);
     return Column(
       children: [
         Expanded(
@@ -921,22 +930,64 @@ class _PaymentProcessScreenState extends State<PaymentProcessScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.check_circle_outline, size: 80, color: Colors.green),
+                Obx(() => Icon(
+                      userController.lastTransactionStatus.value == "failed"
+                          ? Icons.cancel_rounded
+                          : Icons.check_circle_rounded,
+                      size: 80,
+                      color:
+                          userController.lastTransactionStatus.value == "failed"
+                              ? Colors.red
+                              : Colors.green,
+                    )),
                 SizedBox(height: 20),
+                Obx(() => Text(
+                      userController.lastTransactionStatus.value == "failed"
+                          ? 'Transaction Failed'
+                          : 'Transaction Successful',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    )),
+                SizedBox(height: 10),
+                Obx(() => Text(
+                      userController.lastTransactionStatus.value == "failed"
+                          ? "We're sorry, but your transaction couldn't be completed.\nPlease try again or contact support for assistance."
+                          : "We sent your money. Please check your account. Thank you!",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 16,
+                      ),
+                    )),
+                SizedBox(height: 30),
+                // Need help section
                 Text(
-                  'Payment Complete!',
+                  userController.lastTransactionStatus.value == "failed"
+                      ? "Need help ?"
+                      : "Didn't receive your money?",
                   style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
                 SizedBox(height: 10),
-                Text(
-                  'Your payment has been processed successfully',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 16,
+                TextButton.icon(
+                  onPressed: () {
+                    // Add WhatsApp contact functionality
+                    final whatsappUrl =
+                        Uri.parse('https://wa.me/your_number_here');
+                    launchUrl(whatsappUrl);
+                  },
+                  icon: SvgPicture.asset("assets/images/whatsapp.svg",
+                      width: 24, height: 24),
+                  label: Text(
+                    'Contact us on WhatsApp',
+                    style: TextStyle(
+                      color: Colors.green,
+                      fontSize: 16,
+                    ),
                   ),
                 ),
               ],
@@ -946,25 +997,72 @@ class _PaymentProcessScreenState extends State<PaymentProcessScreen> {
         Container(
           width: double.infinity,
           padding: EdgeInsets.all(20),
-          child: ElevatedButton(
-            onPressed: () {
-              userController.stopRefetching();
-              Get.back();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.orange,
-              padding: EdgeInsets.symmetric(vertical: 15),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+          child: Row(
+            children: [
+              if (userController.lastTransactionStatus.value == "failed")
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      // Reset to first step
+                      transactionController.activeStep.value = 0;
+                      transactionController.fetchTransactionHistory();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      padding: EdgeInsets.symmetric(vertical: 15),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: Text(
+                      "Try Again",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              if (userController.lastTransactionStatus.value == "failed")
+                SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () {
+                    transactionController.activeStep.value = 0;
+                    if (userController.lastTransactionStatus.value ==
+                        "failed") {
+                      Get.back();
+                    } else {
+                      Get.offNamed('/transactions');
+                    }
+                    transactionController.fetchTransactionHistory();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        userController.lastTransactionStatus.value == "failed"
+                            ? Colors.grey[300]
+                            : Colors.orange,
+                    padding: EdgeInsets.symmetric(vertical: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Text(
+                    userController.lastTransactionStatus.value == "failed"
+                        ? "Close"
+                        : "View Transaction",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color:
+                          userController.lastTransactionStatus.value == "failed"
+                              ? Colors.black87
+                              : Colors.white,
+                    ),
+                  ),
+                ),
               ),
-            ),
-            child: Text(
-              "Done",
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+            ],
           ),
         ),
       ],

@@ -213,9 +213,11 @@ class UserController extends GetxController {
 
   void startProfileRefetching() {
     if (lastTransactionStatus.value != "failed" &&
-        lastTransactionStatus.value != "success") {
-      _timer = Timer.periodic(Duration(seconds: 5), (timer) {
+        lastTransactionStatus.value != "success" &&
+        pendingTransaction["isTherePendingTransaction"]) {
+      _timer = Timer.periodic(Duration(seconds: 20), (timer) {
         getUsersProfile();
+
         print('Refetching profile...');
       });
     } else {
